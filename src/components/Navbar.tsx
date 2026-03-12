@@ -1,7 +1,7 @@
-import { Menu, ShoppingCart } from 'lucide-react';
-import { useState } from 'react';
-import { useCart } from '../context/CartContext';
-import { Link } from 'react-router-dom';
+import { Menu, ShoppingCart } from "lucide-react";
+import { useState } from "react";
+import { useCart } from "../context/CartContext";
+import { Link } from "react-router-dom";
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -18,7 +18,7 @@ export default function Navbar() {
             <Menu className="w-6 h-6 text-white" />
           </button>
 
-          <Link to="/" className="flex items-center">
+          {/* <Link to="/" className="flex items-center">
             <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center border-2 border-[#82b440] p-1">
               <img 
                 src="https://fuxonjkxshicmufzbeof.supabase.co/storage/v1/object/public/logos/Logo.png" 
@@ -26,7 +26,7 @@ export default function Navbar() {
                 className="w-full h-full object-contain rounded-full"
               />
             </div>
-          </Link>
+          </Link> */}
 
           <Link to="/cart" className="relative">
             <div className="w-12 h-12 bg-white border border-blue-200 rounded-xl flex items-center justify-center">
@@ -43,17 +43,26 @@ export default function Navbar() {
         {isMenuOpen && (
           <div className="mt-4 pb-4 md:hidden">
             <div className="flex flex-col space-y-3">
-              <Link to="/" onClick={() => setIsMenuOpen(false)} className="text-gray-700 font-medium hover:text-blue-600 transition-colors">
+              <Link
+                to="/"
+                onClick={() => setIsMenuOpen(false)}
+                className="text-gray-700 font-medium hover:text-blue-600 transition-colors"
+              >
                 Home
               </Link>
-              <Link to="/products" onClick={() => setIsMenuOpen(false)} className="text-gray-700 font-medium hover:text-blue-600 transition-colors">
+              <Link
+                to="/products"
+                onClick={() => setIsMenuOpen(false)}
+                className="text-gray-700 font-medium hover:text-blue-600 transition-colors"
+              >
                 Products
               </Link>
-              <Link to="/cart" onClick={() => setIsMenuOpen(false)} className="text-gray-700 font-medium hover:text-blue-600 transition-colors">
+              <Link
+                to="/cart"
+                onClick={() => setIsMenuOpen(false)}
+                className="text-gray-700 font-medium hover:text-blue-600 transition-colors"
+              >
                 Cart
-              </Link>
-              <Link to="/about" onClick={() => setIsMenuOpen(false)} className="text-gray-700 font-medium hover:text-blue-600 transition-colors">
-                About
               </Link>
             </div>
           </div>
