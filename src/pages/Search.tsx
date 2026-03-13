@@ -76,6 +76,14 @@ export default function Search() {
     }));
   };
 
+  const setQuantityValue = (id: number, value: string) => {
+    const num = parseInt(value);
+    setQuantities(prev => ({
+      ...prev,
+      [id]: isNaN(num) ? 0 : Math.max(0, num)
+    }));
+  };
+
   const handleAddToCart = (product: any) => {
     const qty = quantities[product.id] || 0;
     if (qty > 0) {
@@ -240,9 +248,13 @@ export default function Search() {
                           >
                             <Minus className="w-4 h-4 md:w-6 md:h-6 stroke-[3px]" />
                           </button>
-                          <span className="text-xl md:text-3xl font-bold min-w-[1.2em] text-center font-mono">
-                            {quantities[product.id] || 0}
-                          </span>
+                          <input
+                            type="number"
+                            value={quantities[product.id] || ''}
+                            onChange={(e) => setQuantityValue(product.id, e.target.value)}
+                            className="text-xl md:text-3xl font-bold w-12 md:w-20 text-center bg-white rounded-xl border border-gray-200 py-1 md:py-2 focus:outline-none focus:ring-2 focus:ring-primary/20 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none font-mono"
+                            placeholder="0"
+                          />
                           <button 
                             onClick={() => updateQuantity(product.id, 1)}
                             className="w-10 h-10 md:w-14 md:h-14 bg-primary rounded-xl md:rounded-2xl flex items-center justify-center text-white shadow-lg active:scale-95 transition-transform"

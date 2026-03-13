@@ -131,6 +131,14 @@ export default function Products() {
     }));
   };
 
+  const setQuantityValue = (id: number, value: string) => {
+    const num = parseInt(value);
+    setQuantities(prev => ({
+      ...prev,
+      [id]: isNaN(num) ? 0 : Math.max(0, num)
+    }));
+  };
+
   const handleAddToCart = (product: Product) => {
     const qty = quantities[product.id] || 0;
     if (qty > 0) {
@@ -240,9 +248,13 @@ export default function Products() {
                         >
                           <Minus className="w-4 h-4 md:w-6 md:h-6 stroke-[3px]" />
                         </button>
-                        <span className="text-[12px] md:text-3xl font-bold min-w-[1.2em] text-center">
-                          {quantities[product.id] || 0}
-                        </span>
+                        <input
+                          type="number"
+                          value={quantities[product.id] || ''}
+                          onChange={(e) => setQuantityValue(product.id, e.target.value)}
+                          className="text-[12px] md:text-3xl font-bold w-10 md:w-20 text-center bg-white rounded-lg border border-gray-200 py-1 md:py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                          placeholder="0"
+                        />
                         <button
                           onClick={() => updateQuantity(product.id, 1)}
                           className="w-7 md:w-14 h-7 md:h-14 bg-[#007bff] rounded-md md:rounded-2xl flex items-center justify-center text-white shadow-lg active:scale-95 transition-transform"

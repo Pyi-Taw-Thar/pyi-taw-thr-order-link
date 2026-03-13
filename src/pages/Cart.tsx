@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { useState } from 'react';
 
 export default function Cart() {
-  const { cartItems, updateQuantity, removeFromCart, clearCart, totalPrice } = useCart();
+  const { cartItems, updateQuantity, setQuantity, removeFromCart, clearCart, totalPrice } = useCart();
   const [isSuccess, setIsSuccess] = useState(false);
 
   const handleOrder = () => {
@@ -23,8 +23,8 @@ export default function Cart() {
             <ShoppingCart className="w-6 h-6 md:w-8 md:h-8 text-[#1a1a1a]" />
             <h1 className="text-[16px] md:text-2xl font-bold text-primary-dark">ဈေးဝယ်ခြင်း</h1>
           </div>
-          <Link 
-            to="/products" 
+          <Link
+            to="/products"
             className="border border-primary text-primary px-3 py-1.5 md:px-4 md:py-2 rounded-xl text-[10px] md:text-sm font-semibold hover:bg-blue-50 transition-colors"
           >
             အခြားဆေးတွေကြည့်မယ်
@@ -61,7 +61,7 @@ export default function Cart() {
                       </div>
                     </div>
                   </div>
-                  <button 
+                  <button
                     onClick={() => removeFromCart(item.id)}
                     className="bg-[#fff1f0] p-2.5 rounded-full text-red-500 hover:bg-red-50 transition-colors"
                   >
@@ -71,14 +71,19 @@ export default function Cart() {
 
                 {/* Quantity Selector */}
                 <div className="mt-4 bg-white border border-gray-100 rounded-2xl flex items-center justify-between p-1.5 px-4 md:px-6 shadow-sm">
-                  <button 
+                  <button
                     onClick={() => updateQuantity(item.id, -1)}
                     className="w-8 h-8 md:w-12 md:h-12 bg-primary rounded-lg md:rounded-xl flex items-center justify-center text-white"
                   >
                     <Minus className="w-4 h-4 md:w-6 md:h-6 stroke-[3px]" />
                   </button>
-                  <span className="text-base md:text-2xl font-bold font-mono">{item.quantity}</span>
-                  <button 
+                  <input
+                    type="number"
+                    value={item.quantity}
+                    onChange={(e) => setQuantity(item.id, parseInt(e.target.value) || 1)}
+                    className="text-base md:text-2xl font-bold font-mono w-12 md:w-20 text-center bg-transparent border-none focus:outline-none focus:ring-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  />
+                  <button
                     onClick={() => updateQuantity(item.id, 1)}
                     className="w-8 h-8 md:w-12 md:h-12 bg-primary rounded-lg md:rounded-xl flex items-center justify-center text-white"
                   >
@@ -97,10 +102,10 @@ export default function Cart() {
               <div className="flex items-end justify-between">
                 <div className="space-y-0.5">
                   <h2 className="text-[14px] md:text-2xl font-bold text-primary-dark">စုစုပေါင်းဈေးနှုန်း</h2>
-                  <p className="text-[8px] md:text-[10px] text-gray-400 leading-tight">
+                  {/* <p className="text-[8px] md:text-[10px] text-gray-400 leading-tight">
                     ပို့ဆောင်ခနှင့် အခွန်များကို ငွေချေတဲ့အခါ<br />
                     ထည့်သွင်း တွက်ချက်ပေးပါမယ်
-                  </p>
+                  </p> */}
                 </div>
                 <div className="flex items-baseline gap-2">
                   <span className="text-gray-400 text-xl md:text-3xl font-light">-</span>
@@ -112,14 +117,14 @@ export default function Cart() {
               </div>
 
               <div className="space-y-3 pt-2">
-                <button 
+                <button
                   onClick={handleOrder}
                   className="w-full bg-primary text-white py-3 md:py-4 rounded-2xl font-bold text-[14px] md:text-xl flex items-center justify-center gap-3 shadow-lg active:scale-[0.98] transition-all"
                 >
                   <ShoppingCart className="w-5 h-5 md:w-6 md:h-6" />
                   အော်ဒါတင်မယ်
                 </button>
-                <button 
+                <button
                   onClick={clearCart}
                   className="w-full bg-white text-gray-400 border border-gray-100 py-3 md:py-4 rounded-2xl font-bold text-[12px] md:text-lg active:scale-[0.98] transition-all"
                 >
@@ -134,7 +139,7 @@ export default function Cart() {
       {/* Success Modal */}
       {isSuccess && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 overflow-hidden">
-          <div 
+          <div
             className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300"
             onClick={() => setIsSuccess(false)}
           />
@@ -142,7 +147,7 @@ export default function Cart() {
             <div className="w-20 h-20 md:w-24 md:h-24 bg-green-50 rounded-full flex items-center justify-center mx-auto">
               <CheckCircle className="w-12 h-12 md:w-16 md:h-16 text-green-500 animate-in zoom-in duration-700 delay-200" />
             </div>
-            
+
             <div className="space-y-2">
               <h2 className="text-xl md:text-3xl font-bold text-[#1a1a1a]">အောင်မြင်ပါသည်</h2>
               <p className="text-[12px] md:text-base text-gray-500 font-medium">
@@ -151,7 +156,7 @@ export default function Cart() {
               </p>
             </div>
 
-            <button 
+            <button
               onClick={() => setIsSuccess(false)}
               className="w-full bg-primary text-white py-3 md:py-4 rounded-2xl font-bold text-[14px] md:text-lg shadow-lg active:scale-95 transition-all"
             >
