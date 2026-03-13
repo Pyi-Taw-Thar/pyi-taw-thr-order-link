@@ -53,10 +53,10 @@ export default function LimitedSaleSection() {
       <div className="px-4 space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-gray-800 text-lg font-semibold">
+            <h2 className="text-primary-dark   text-[20px] md:text-2xl font-semibold">
               အကန့်သတ်ရသောဆေးများ
             </h2>
-            <p className="text-gray-600 text-sm mt-1">
+            <p className="text-gray-600 text-[10px] mt-1">
               အရေတွက် အကန့်သန့်ဖြင့်သာ <br /> ဝယ်ယူလို့ရသောဆေးများ
             </p>
           </div>
@@ -64,10 +64,10 @@ export default function LimitedSaleSection() {
             onClick={() => {
               navigate("/products");
             }}
-            className="border-2 border-blue-600 text-blue-600 px-4 py-2 rounded-full font-semibold hover:bg-blue-50 transition-colors flex items-center gap-1 text-sm whitespace-nowrap"
+            className="border-2 border-primary text-primary px-4 py-2 rounded-full font-semibold hover:bg-blue-50 transition-colors flex items-center gap-1 text-sm whitespace-nowrap"
           >
             ကြည့်မယ်
-            <ChevronRight className="w-4 h-4" />
+
           </button>
         </div>
 
@@ -75,7 +75,7 @@ export default function LimitedSaleSection() {
           {products.map((product) => (
             <div
               key={product.id}
-              className="bg-gray-50 rounded-lg px-4 py-6 flex flex-col space-y-5"
+              className="bg-gray-50 rounded-lg px-2 py-6 flex flex-col space-y-5"
             >
               <div className="space-y-2">
                 <h3 className="text-gray-800 font-semibold text-sm">
@@ -85,10 +85,10 @@ export default function LimitedSaleSection() {
               </div>
 
               <div className="flex items-center gap-2">
-                <span className="text-blue-600 font-bold text-base">
-                  {product.price.toLocaleString()} MMK
+                <span className="text-primary font-bold text-[14px] font-mono">
+                  {product.price.toLocaleString()} <span className="text-[10px]">MMK</span>
                 </span>
-                <span className="bg-yellow-100 text-yellow-700 text-xs font-semibold px-2 py-1 rounded">
+                <span className="bg-yellow-100 text-[#BFGA02] text-[10px] font-semibold px-1 py-1 rounded">
                   ဘူး ၁၀၀ သာ
                 </span>
               </div>

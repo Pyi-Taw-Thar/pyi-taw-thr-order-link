@@ -13,9 +13,9 @@ export default function Navbar() {
         <div className="flex items-center justify-between">
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="bg-blue-600 p-3 rounded-xl hover:bg-blue-700 transition-colors"
+            className="bg-primary p-2.5 rounded-xl hover:bg-primary-dark transition-colors"
           >
-            <Menu className="w-6 h-6 text-white" />
+            <Menu className="w-5 h-5 md:w-6 md:h-6 text-white" />
           </button>
 
           {/* <Link to="/" className="flex items-center">
@@ -29,11 +29,11 @@ export default function Navbar() {
           </Link> */}
 
           <Link to="/cart" className="relative">
-            <div className="w-12 h-12 bg-white border border-blue-200 rounded-xl flex items-center justify-center">
-              <ShoppingCart className="w-6 h-6 text-blue-600" />
+            <div className="w-10 h-10 md:w-12 md:h-12 bg-white border border-primary-light/30 rounded-xl flex items-center justify-center">
+              <ShoppingCart className="w-5 h-5 md:w-6 md:h-6 text-primary" />
             </div>
             {cartCount > 0 && (
-              <div className="absolute -top-2 -right-2 bg-[#ff3b30] text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center border-2 border-white animate-in zoom-in duration-300">
+              <div className="absolute -top-1.5 -right-1.5 bg-[#ff3b30] text-white text-[10px] md:text-xs font-bold w-5 h-5 md:w-6 md:h-6 rounded-full flex items-center justify-center border-2 border-white animate-in zoom-in duration-300 font-mono">
                 {cartCount}
               </div>
             )}
@@ -46,21 +46,21 @@ export default function Navbar() {
               <Link
                 to="/"
                 onClick={() => setIsMenuOpen(false)}
-                className="text-gray-700 font-medium hover:text-blue-600 transition-colors"
+                className="text-gray-700 font-medium text-[14px] md:text-base hover:text-primary transition-colors"
               >
                 Home
               </Link>
               <Link
                 to="/products"
                 onClick={() => setIsMenuOpen(false)}
-                className="text-gray-700 font-medium hover:text-blue-600 transition-colors"
+                className="text-gray-700 font-medium text-[14px] md:text-base hover:text-primary transition-colors"
               >
                 Products
               </Link>
               <Link
                 to="/cart"
                 onClick={() => setIsMenuOpen(false)}
-                className="text-gray-700 font-medium hover:text-blue-600 transition-colors"
+                className="text-gray-700 font-medium text-[14px] md:text-base hover:text-primary transition-colors"
               >
                 Cart
               </Link>

@@ -29,16 +29,39 @@ export default function Search() {
     inputRef.current?.focus();
   }, []);
 
-  const results = query 
-    ? productData.filter(item => item.name.toLowerCase().includes(query.toLowerCase()))
+  const [results, setResults] = useState<any[]>([]);
+
+  // Show ephemeral suggestions while typing
+  const suggestions = query 
+    ? productData.filter(item => 
+        item.name.toLowerCase().includes(query.toLowerCase()) && 
+        !results.some(r => r.id === item.id)
+      )
     : [];
 
   const handleSearch = (q: string) => {
+    if (!q) return;
     setQuery(q);
-    if (q && !history.includes(q)) {
+    
+    // Update history
+    if (!history.includes(q)) {
       setHistory(prev => [q, ...prev.slice(0, 4)]);
     }
+
+    // Find matches
+    const matches = productData.filter(item => 
+      item.name.toLowerCase().includes(q.toLowerCase())
+    );
+
+    // Merge with persistent results (keeping unique by ID)
+    setResults(prev => {
+      const existingIds = new Set(prev.map(p => p.id));
+      const newUniqueMatches = matches.filter(m => !existingIds.has(m.id));
+      return [...newUniqueMatches, ...prev]; // Newest found on top
+    });
   };
+
+  const clearResults = () => setResults([]);
 
   const clearHistory = () => setHistory([]);
 
@@ -80,9 +103,9 @@ export default function Search() {
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSearch(query)}
             placeholder="ဆေးဝါးနှင့်ကျန်းမာရေးပစ္စည်းများ ရှာဖွေရန်"
-            className="w-full bg-gray-50 border border-gray-200 rounded-full py-3 px-12 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+            className="w-full bg-gray-50 border border-gray-200 rounded-full py-2.5 md:py-3 px-10 md:px-12 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
           />
-          <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <SearchIcon className="absolute left-3.5 md:left-4 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 text-gray-400" />
           {query && (
             <button 
               onClick={() => setQuery('')}
@@ -95,17 +118,17 @@ export default function Search() {
       </div>
 
       <div className="max-w-2xl mx-auto p-4 space-y-8">
-        {!query ? (
-          /* Search History */
+        {/* Search History (Visible when query is empty and results is low) */}
+        {!query && results.length === 0 && (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-                <History className="w-5 h-5 text-blue-500" />
+              <h2 className="text-[14px] md:text-lg font-bold text-primary-dark flex items-center gap-2">
+                <History className="w-5 h-5 text-primary" />
                 ရှာဖွေခဲ့ဖူးသည်များ
               </h2>
               <button 
                 onClick={clearHistory}
-                className="text-sm text-blue-500 font-medium hover:underline"
+                className="text-[12px] md:text-sm text-primary font-medium hover:underline"
               >
                 အကုန်ဖျက်မယ်
               </button>
@@ -116,22 +139,53 @@ export default function Search() {
                   <button
                     key={idx}
                     onClick={() => handleSearch(item)}
-                    className="bg-gray-50 border border-gray-100 px-4 py-2 rounded-full text-sm text-gray-600 hover:bg-blue-50 hover:border-blue-200 hover:text-blue-600 transition-all"
+                    className="bg-gray-50 border border-gray-100 px-3 py-1.5 md:px-4 md:py-2 rounded-full text-[12px] md:text-sm text-gray-600 hover:bg-primary-light/10 hover:border-primary-light hover:text-primary transition-all"
                   >
                     {item}
                   </button>
                 ))
               ) : (
-                <p className="text-gray-400 text-sm italic py-4">ရှာဖွေမှုမှတ်တမ်း မရှိသေးပါ</p>
+                <p className="text-gray-400 text-[12px] md:text-sm italic py-4">ရှာဖွေမှုမှတ်တမ်း မရှိသေးပါ</p>
               )}
             </div>
           </div>
-        ) : (
-          /* Search Results */
+        )}
+
+        {/* Search Results (Persistent List) */}
+        {(results.length > 0 || query) && (
           <div className="space-y-4">
-            <h2 className="text-lg font-bold text-gray-800">
-              ရှာဖွေတွေ့ရှိမှုများ ({results.length})
-            </h2>
+            <div className="flex items-center justify-between">
+              <h2 className="text-[14px] md:text-lg font-bold text-primary-dark">
+                {results.length > 0 ? 'ရှာဖွေတွေ့ရှိမှုများ' : 'ရှာဖွေနေသည်'} <span className="font-mono">({results.length})</span>
+              </h2>
+              {results.length > 0 && (
+                <button 
+                  onClick={clearResults}
+                  className="text-[12px] md:text-sm text-red-500 font-medium hover:underline"
+                >
+                  စာရင်းရှင်းမယ်
+                </button>
+              )}
+            </div>
+
+            {/* Suggestions while typing (New items not already in results) */}
+            {query && suggestions.length > 0 && (
+              <div className="space-y-2 pb-4 border-b border-dashed border-gray-100">
+                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">အကြံပြုချက်များ</p>
+                <div className="flex flex-wrap gap-2">
+                  {suggestions.slice(0, 3).map((s) => (
+                    <button
+                      key={s.id}
+                      onClick={() => handleSearch(s.name)}
+                      className="bg-primary/5 text-primary border border-primary/20 px-3 py-1 rounded-full text-[12px] font-bold flex items-center gap-1"
+                    >
+                      <Plus className="w-3 h-3" /> {s.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="space-y-3">
               {results.length > 0 ? (
                 results.map((product) => (
@@ -143,19 +197,19 @@ export default function Search() {
                     >
                       <div className="p-3 pr-4 flex items-center justify-between">
                         <div className="flex items-center gap-4">
-                          <div className="w-8 h-8 rounded-full border border-blue-100 flex items-center justify-center text-blue-500 text-sm font-bold bg-white">
+                          <div className="w-8 h-8 md:w-10 md:h-10 rounded-full border border-blue-100 flex items-center justify-center text-primary text-[10px] md:text-sm font-bold bg-white font-mono">
                             {product.id}
                           </div>
-                          <span className="text-[#1a1a1a] font-bold text-base">
+                          <span className="text-[#1a1a1a] font-bold text-[12px] md:text-base">
                             {product.name}
                           </span>
                         </div>
                         <button 
                           onClick={() => toggleProduct(product.id)}
-                          className={`flex items-center gap-1 border px-4 py-1.5 rounded-full text-xs font-semibold transition-colors ${
+                          className={`flex items-center gap-1 border px-3 py-1 md:px-4 md:py-1.5 rounded-full text-[10px] md:text-xs font-semibold transition-colors ${
                             expandedProductId === product.id 
-                              ? 'bg-white border-blue-500 text-blue-500' 
-                              : 'border-blue-500 text-blue-600 hover:bg-blue-50'
+                              ? 'bg-white border-primary text-primary' 
+                              : 'border-primary text-primary hover:bg-primary-light/10'
                           }`}
                         >
                           {expandedProductId === product.id ? 'ပိတ်မယ်' : 'ဈေးကြည့်မယ်'}
@@ -165,12 +219,12 @@ export default function Search() {
 
                       {expandedProductId === product.id && (
                         <div className="px-10 pb-4 space-y-3">
-                          <div className="flex items-center justify-between text-sm">
+                          <div className="flex items-center justify-between text-[12px] md:text-sm">
                             <span className="text-gray-600 font-medium">မူရင်းဈေးနှုန်း</span>
                             <div className="flex-1 border-b border-dotted border-gray-400 mx-4 h-0 mt-2" />
                             <div className="flex items-baseline gap-1">
-                              <span className="text-blue-600 font-bold text-lg">{product.price.toLocaleString()}</span>
-                              <span className="text-blue-600 text-[10px] font-bold">MMK</span>
+                              <span className="text-primary font-bold text-[14px] md:text-lg font-mono">{product.price.toLocaleString()}</span>
+                              <span className="text-primary text-[10px] font-bold">MMK</span>
                             </div>
                           </div>
                         </div>
@@ -179,29 +233,29 @@ export default function Search() {
 
                     {expandedProductId === product.id && (
                       <div className="flex items-center justify-between px-2 animate-in fade-in slide-in-from-top-2 duration-200">
-                        <div className="flex items-center gap-6">
+                        <div className="flex items-center gap-4 md:gap-6">
                           <button 
                             onClick={() => updateQuantity(product.id, -1)}
-                            className="w-14 h-14 bg-[#007bff] rounded-2xl flex items-center justify-center text-white shadow-lg active:scale-95 transition-transform"
+                            className="w-10 h-10 md:w-14 md:h-14 bg-primary rounded-xl md:rounded-2xl flex items-center justify-center text-white shadow-lg active:scale-95 transition-transform"
                           >
-                            <Minus className="w-6 h-6 stroke-[3px]" />
+                            <Minus className="w-4 h-4 md:w-6 md:h-6 stroke-[3px]" />
                           </button>
-                          <span className="text-3xl font-bold min-w-[1.2em] text-center">
+                          <span className="text-xl md:text-3xl font-bold min-w-[1.2em] text-center font-mono">
                             {quantities[product.id] || 0}
                           </span>
                           <button 
                             onClick={() => updateQuantity(product.id, 1)}
-                            className="w-14 h-14 bg-[#007bff] rounded-2xl flex items-center justify-center text-white shadow-lg active:scale-95 transition-transform"
+                            className="w-10 h-10 md:w-14 md:h-14 bg-primary rounded-xl md:rounded-2xl flex items-center justify-center text-white shadow-lg active:scale-95 transition-transform"
                           >
-                            <Plus className="w-6 h-6 stroke-[3px]" />
+                            <Plus className="w-4 h-4 md:w-6 md:h-6 stroke-[3px]" />
                           </button>
                         </div>
                         <button 
                           onClick={() => handleAddToCart(product)}
                           disabled={(quantities[product.id] || 0) === 0}
-                          className={`px-8 py-4 rounded-full font-bold text-lg shadow-md transition-all ${
+                          className={`px-6 py-2.5 md:px-8 md:py-4 rounded-full font-bold text-[14px] md:text-lg shadow-md transition-all ${
                             (quantities[product.id] || 0) > 0
-                              ? 'bg-[#007bff] text-white active:scale-95'
+                              ? 'bg-primary text-white active:scale-95'
                               : 'bg-[#dcdcdc] text-gray-500 cursor-not-allowed uppercase'
                           }`}
                         >

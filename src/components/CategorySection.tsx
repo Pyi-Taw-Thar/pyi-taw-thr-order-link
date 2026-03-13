@@ -50,9 +50,9 @@ const categories: Category[] = [
 export default function CategorySection() {
   const navigate = useNavigate();
   return (
-    <section className="bg-gray-50 py-8">
-      <div className="px-4 space-y-4">
-        <h2 className="text-gray-700 text-lg font-semibold">
+    <section className="py-8 px-0 md:px-40 md:py-10">
+      <div className="px-4 space-y-6 md:space-y-10">
+        <h2 className="text-primary-dark text-[20px] md:text-2xl font-semibold">
           ရရှိနိုင်သော ဆေးအမျိုးအစားများ
         </h2>
 
@@ -60,20 +60,18 @@ export default function CategorySection() {
           {categories.map((category) => (
             <div
               key={category.id}
-              className={`rounded-2xl p-4 flex flex-col justify-between min-h-[150px] transition-all ${
-                category.featured ? "bg-blue-600" : "bg-blue-600"
-              }`}
+              className={`rounded-2xl p-4 flex flex-col justify-between items-end min-h-[104px] transition-all bg-primary-light ${category.featured ? "col-span-2" : ""}`}
             >
-              <div className="space-y-1 flex-1">
-                <h3 className="text-white font-semibold text-base">
+              <div className="space-y-1 flex-1 w-full">
+                <h3 className="text-white font-semibold text-[16px] md:text-xl">
                   {category.title}
                 </h3>
-                <p className="text-blue-100 text-sm">{category.description}</p>
+                <p className="text-blue-100 text-[14px]">{category.description}</p>
               </div>
               <button
-                className="bg-white text-blue-600 px-4 py-2 rounded-full font-semibold hover:bg-gray-100 transition-colors flex items-center gap-1 text-sm whitespace-nowrap mt-3"
+                className="bg-white text-primary-light w-[100px] px-4 py-2 rounded-full font-semibold hover:bg-gray-100 transition-colors items-center gap-1 text-[12px] md:text-base whitespace-nowrap mt-3"
                 onClick={() => {
-                  // TODO: Add navigation to product page
+
                   navigate("/products");
                 }}
               >
