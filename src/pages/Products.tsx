@@ -207,7 +207,10 @@ export default function Products() {
                         <div className="w-8 h-8 md:w-12 md:h-12 rounded-full border border-blue-100 flex items-center justify-center text-blue-500 text-sm font-bold bg-white">
                           {product.id}
                         </div>
-                        <span className="text-[#1a1a1a] font-bold text-[12px] md:text-[14px]">
+                        <span 
+                          onClick={() => navigate(`/product/${product.id}`)}
+                          className="text-[#1a1a1a] font-bold text-[12px] md:text-[14px] cursor-pointer hover:text-blue-600 transition-colors"
+                        >
                           {product.name}
                         </span>
                       </div>
