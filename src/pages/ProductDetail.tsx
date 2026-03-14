@@ -41,7 +41,7 @@ export default function ProductDetail() {
     <div className="bg-white min-h-screen pb-24">
       {/* Header */}
       <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-md px-4 py-4 flex items-center gap-4 border-b border-gray-100">
-        <button 
+        <button
           onClick={() => navigate(-1)}
           className="p-2 hover:bg-gray-100 rounded-full transition-colors"
         >
@@ -55,8 +55,8 @@ export default function ProductDetail() {
       <div className="max-w-2xl mx-auto px-4 py-6 space-y-8">
         {/* Product Image */}
         <div className="relative aspect-square rounded-[40px] overflow-hidden bg-gray-50 border border-gray-100 shadow-sm">
-          <img 
-            src={paracetamolImg} 
+          <img
+            src={paracetamolImg}
             alt={product.name}
             className="w-full h-full object-contain p-8"
           />
@@ -84,9 +84,8 @@ export default function ProductDetail() {
               <button
                 key={index}
                 onClick={() => setActiveTab(index)}
-                className={`flex-1 pb-3 text-[13px] md:text-base font-bold transition-all relative ${
-                  activeTab === index ? 'text-blue-600' : 'text-gray-400'
-                }`}
+                className={`flex-1 pb-3 text-[13px] md:text-base font-bold transition-all relative ${activeTab === index ? 'text-blue-600' : 'text-gray-400'
+                  }`}
               >
                 {tab}
                 {activeTab === index && (
@@ -127,7 +126,7 @@ export default function ProductDetail() {
           <div className="flex items-center gap-4 md:gap-6">
             <button
               onClick={() => setQuantity(Math.max(0, quantity - 1))}
-              className="w-8 md:w-14 h-8 md:h-14 bg-[#E5E5E5] rounded-lg md:rounded-2xl flex items-center justify-center text-gray-600 transition-all active:scale-95"
+              className="w-[40px] md:w-14 h-[36px] md:h-14 bg-[#E5E5E5] rounded-lg md:rounded-2xl flex items-center justify-center text-gray-600 transition-all active:scale-95"
             >
               <Minus className="w-4 h-4 md:w-6 md:h-6 stroke-[3px]" />
             </button>
@@ -144,11 +143,10 @@ export default function ProductDetail() {
           <button
             onClick={handleAddToCart}
             disabled={quantity === 0}
-            className={`py-2 px-6 md:px-10 md:py-4 rounded-full font-bold text-sm md:text-lg transition-all shadow-md ${
-              quantity > 0 
-              ? 'bg-primary text-white active:scale-95' 
-              : 'bg-[#dcdcdc] text-gray-500 cursor-not-allowed uppercase'
-            }`}
+            className={`py-2 px-6 md:px-10 md:py-4 rounded-full font-bold text-sm md:text-lg transition-all shadow-md ${quantity > 0
+                ? 'bg-primary text-white active:scale-95'
+                : 'bg-[#dcdcdc] text-gray-500 cursor-not-allowed uppercase'
+              }`}
           >
             ဆေးယူမယ်
           </button>

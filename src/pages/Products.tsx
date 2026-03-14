@@ -207,7 +207,7 @@ export default function Products() {
                         <div className="w-8 h-8 md:w-12 md:h-12 rounded-full border border-blue-100 flex items-center justify-center text-blue-500 text-sm font-bold bg-white">
                           {product.id}
                         </div>
-                        <span 
+                        <span
                           onClick={() => navigate(`/product/${product.id}`)}
                           className="text-[#1a1a1a] font-bold text-[12px] md:text-[14px] cursor-pointer hover:text-blue-600 transition-colors"
                         >
@@ -247,7 +247,7 @@ export default function Products() {
                       <div className="flex items-center gap-6">
                         <button
                           onClick={() => updateQuantity(product.id, -1)}
-                          className="w-7 md:w-14 h-7 md:h-14 bg-[#007bff] rounded-md md:rounded-2xl flex items-center justify-center text-white shadow-lg active:scale-95 transition-transform"
+                          className="w-[40px] md:w-14 h-[36px] md:h-14 bg-[#007bff] rounded-md md:rounded-2xl flex items-center justify-center text-white shadow-lg active:scale-95 transition-transform"
                         >
                           <Minus className="w-4 h-4 md:w-6 md:h-6 stroke-[3px]" />
                         </button>
@@ -255,12 +255,12 @@ export default function Products() {
                           type="number"
                           value={quantities[product.id] || ''}
                           onChange={(e) => setQuantityValue(product.id, e.target.value)}
-                          className="text-[12px] md:text-3xl font-bold w-10 md:w-20 text-center bg-white rounded-lg border border-gray-200 py-1 md:py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                          className="text-[12px] md:text-3xl font-bold w-[100px] md:w-[100px] text-center bg-white rounded-lg border border-gray-200 py-2 md:py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                           placeholder="0"
                         />
                         <button
                           onClick={() => updateQuantity(product.id, 1)}
-                          className="w-7 md:w-14 h-7 md:h-14 bg-[#007bff] rounded-md md:rounded-2xl flex items-center justify-center text-white shadow-lg active:scale-95 transition-transform"
+                          className="w-[40px] md:w-14 h-[36px] md:h-14 bg-[#007bff] rounded-md md:rounded-2xl flex items-center justify-center text-white shadow-lg active:scale-95 transition-transform"
                         >
                           <Plus className="w-4 h-4 md:w-6 md:h-6 stroke-[3px]" />
                         </button>
