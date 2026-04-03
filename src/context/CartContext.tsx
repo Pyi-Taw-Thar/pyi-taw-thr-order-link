@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
 export interface CartItem {
-  id: number;
+  id: string;
   name: string;
   price: number;
   quantity: number;
@@ -9,10 +9,10 @@ export interface CartItem {
 
 interface CartContextType {
   cartItems: CartItem[];
-  addToCart: (product: { id: number; name: string; price: number }, quantity: number) => void;
-  removeFromCart: (id: number) => void;
-  updateQuantity: (id: number, delta: number) => void;
-  setQuantity: (id: number, quantity: number) => void;
+  addToCart: (product: { id: string; name: string; price: number }, quantity: number) => void;
+  removeFromCart: (id: string) => void;
+  updateQuantity: (id: string, delta: number) => void;
+  setQuantity: (id: string, quantity: number) => void;
   clearCart: () => void;
   totalItems: number;
   totalPrice: number;
@@ -24,7 +24,7 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
 
-  const addToCart = (product: { id: number; name: string; price: number }, quantity: number) => {
+  const addToCart = (product: { id: string; name: string; price: number }, quantity: number) => {
     if (quantity <= 0) return;
     
     setCartItems(prev => {
@@ -38,17 +38,17 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     });
   };
 
-  const removeFromCart = (id: number) => {
+  const removeFromCart = (id: string) => {
     setCartItems(prev => prev.filter(item => item.id !== id));
   };
 
-  const updateQuantity = (id: number, delta: number) => {
+  const updateQuantity = (id: string, delta: number) => {
     setCartItems(prev => prev.map(item =>
       item.id === id ? { ...item, quantity: Math.max(1, item.quantity + delta) } : item
     ));
   };
 
-  const setQuantity = (id: number, quantity: number) => {
+  const setQuantity = (id: string, quantity: number) => {
     setCartItems(prev => prev.map(item =>
       item.id === id ? { ...item, quantity: Math.max(1, quantity) } : item
     ));

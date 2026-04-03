@@ -1,0 +1,918 @@
+[
+  {
+    "id": "c353f4d7-1b6a-4b12-99fb-1aacb83c7e15",
+    "Code": "PKK017",
+    "brand": "ပြည်ကျော်ကြား",
+    "category": "အထူးဆေး",
+    "subcategory": null,
+    "Short": "W17",
+    "Description": "မဟာမိတ်-1 M",
+    "variants": [
+      {
+        "unit": "1 ပုံး",
+        "Qty": 1,
+        "Unit": "ပုံး",
+        "nan.1": 240000,
+        "nan.2": "MMK",
+        "nan.3": 320000,
+        "nan.4": "MMK",
+        "SP1": 320000,
+        "SP2": 320000,
+        "SP3": 320000,
+        "SP4": 0,
+        "SP5": 0,
+        "GP": 25
+      },
+      {
+        "unit": "20 ဘူး",
+        "Qty": 20,
+        "Unit": "ဆွဲ",
+        "nan.1": 25000,
+        "nan.2": "MMK",
+        "nan.3": 20000,
+        "nan.4": "MMK",
+        "SP1": 17000,
+        "SP2": 17000,
+        "SP3": 17000,
+        "SP4": 0,
+        "SP5": 0,
+        "GP": 25
+      },
+      {
+        "unit": "10 တွဲ",
+        "Qty": 10,
+        "Unit": "တွဲ",
+        "nan.1": 2500,
+        "nan.2": "MMK",
+        "nan.3": 2000,
+        "nan.4": "MMK",
+        "SP1": 1700,
+        "SP2": 1700,
+        "SP3": 1700,
+        "SP4": 0,
+        "SP5": 0,
+        "GP": 25
+      }
+    ],
+    "limit": false
+  },
+  {
+    "id": "ac9f70c1-e87f-4bf0-98d1-9b1bd12d89df",
+    "Code": "PKK018",
+    "brand": "ပြည်ကျော်ကြား",
+    "category": "အထူးဆေး",
+    "subcategory": null,
+    "Short": "W18",
+    "Description": "မဟာမိတ်-2 G",
+    "variants": [
+      {
+        "unit": "1 ပုံး",
+        "Qty": 1,
+        "Unit": "တွဲ",
+        "nan.1": 2500,
+        "nan.2": "MMK",
+        "nan.3": 2500,
+        "nan.4": "MMK",
+        "SP1": 2500,
+        "SP2": 2500,
+        "SP3": 2500,
+        "SP4": 0,
+        "SP5": 0,
+        "GP": 0
+      }
+    ],
+    "limit": false
+  },
+  {
+    "id": "f068d9be-5e75-4b6c-bd67-e1c7e0ecca66",
+    "Code": "PKK019",
+    "brand": "ပြည်ကျော်ကြား",
+    "category": "အထူးဆေး",
+    "subcategory": null,
+    "Short": "W19",
+    "Description": "မဟာမိတ်-5 Sအဝါ",
+    "variants": [
+      {
+        "unit": "1 ပုံး",
+        "Qty": 1,
+        "Unit": "တွဲ",
+        "nan.1": 650,
+        "nan.2": "MMK",
+        "nan.3": 800,
+        "nan.4": "MMK",
+        "SP1": 800,
+        "SP2": 780,
+        "SP3": 780,
+        "SP4": 0,
+        "SP5": 0,
+        "GP": 19
+      }
+    ],
+    "limit": false
+  },
+  {
+    "id": "5d072267-39b9-4818-a0ea-7539452f84c5",
+    "Code": "PKK020",
+    "brand": "ပြည်ကျော်ကြား",
+    "category": "အထူးဆေး",
+    "subcategory": null,
+    "Short": "W20",
+    "Description": "မဟာမိတ်-6 W",
+    "variants": [
+      {
+        "unit": "1 ပုံး",
+        "Qty": 1,
+        "Unit": "တွဲ",
+        "nan.1": 750,
+        "nan.2": "MMK",
+        "nan.3": 1200,
+        "nan.4": "MMK",
+        "SP1": 1100,
+        "SP2": 1000,
+        "SP3": 1000,
+        "SP4": 0,
+        "SP5": 0,
+        "GP": 38
+      }
+    ],
+    "limit": false
+  },
+  {
+    "id": "7b81c260-1dbf-4fcf-adbe-dc10dfb03ec5",
+    "Code": "PKK021",
+    "brand": "ပြည်ကျော်ကြား",
+    "category": "အထူးဆေး",
+    "subcategory": null,
+    "Short": "W21",
+    "Description": "မဟာမိတ်-F",
+    "variants": [
+      {
+        "unit": "1 ပုံး",
+        "Qty": 1,
+        "Unit": "ဘူး",
+        "nan.1": 19800,
+        "nan.2": "MMK",
+        "nan.3": 17000,
+        "nan.4": "MMK",
+        "SP1": 16300,
+        "SP2": 16300,
+        "SP3": 16300,
+        "SP4": 0,
+        "SP5": 0,
+        "GP": -16
+      }
+    ],
+    "limit": false
+  },
+  {
+    "id": "a5c402d5-5d0b-48dc-977c-d43151a31007",
+    "Code": "PKK022",
+    "brand": "ပြည်ကျော်ကြား",
+    "category": "အထူးဆေး",
+    "subcategory": null,
+    "Short": "W22",
+    "Description": "မဟာမိတ်-LH",
+    "variants": [
+      {
+        "unit": "1 ပုံး",
+        "Qty": 1,
+        "Unit": "ထုပ်",
+        "nan.1": 25000,
+        "nan.2": "MMK",
+        "nan.3": 25500,
+        "nan.4": "MMK",
+        "SP1": 25500,
+        "SP2": 25500,
+        "SP3": 25500,
+        "SP4": 0,
+        "SP5": 0,
+        "GP": 2
+      }
+    ],
+    "limit": false
+  },
+  {
+    "id": "dca88e55-6bf2-4dbb-bfba-5e884a884386",
+    "Code": "PKK023",
+    "brand": "ပြည်ကျော်ကြား",
+    "category": "အထူးဆေး",
+    "subcategory": null,
+    "Short": "W23",
+    "Description": "မဟာမိတ်-5 Sအနီ",
+    "variants": [
+      {
+        "unit": "1 ပုံး",
+        "Qty": 1,
+        "Unit": "တွဲ",
+        "nan.1": 600,
+        "nan.2": "MMK",
+        "nan.3": 800,
+        "nan.4": "MMK",
+        "SP1": 800,
+        "SP2": 780,
+        "SP3": 780,
+        "SP4": 0,
+        "SP5": 0,
+        "GP": 25
+      }
+    ],
+    "limit": false
+  },
+  {
+    "id": "76d35e7c-fa98-43df-8c3b-cd55d08637bd",
+    "Code": "PKK024",
+    "brand": "ပြည်ကျော်ကြား",
+    "category": "အထူးဆေး",
+    "subcategory": null,
+    "Short": "W24",
+    "Description": "မဟာမိတ်-3(SPT)",
+    "variants": [
+      {
+        "unit": "1 ပုံး",
+        "Qty": 1,
+        "Unit": "တွဲ",
+        "nan.1": 1000,
+        "nan.2": "MMK",
+        "nan.3": 2000,
+        "nan.4": "MMK",
+        "SP1": 1900,
+        "SP2": 1800,
+        "SP3": 1600,
+        "SP4": 0,
+        "SP5": 0,
+        "GP": 50
+      }
+    ],
+    "limit": false
+  },
+  {
+    "id": "2724f0fe-0f72-44ca-8645-517fb4e8541e",
+    "Code": "PKK025",
+    "brand": "ပြည်ကျော်ကြား",
+    "category": "အထူးဆေး",
+    "subcategory": null,
+    "Short": "W25",
+    "Description": "မဟာမိတ်-1 G **အလွတ်**",
+    "variants": [
+      {
+        "unit": "1 ပုံး",
+        "Qty": 1,
+        "Unit": "ပုံး",
+        "nan.1": 230000,
+        "nan.2": "MMK",
+        "nan.3": 320000,
+        "nan.4": "MMK",
+        "SP1": 320000,
+        "SP2": 320000,
+        "SP3": 320000,
+        "SP4": 0,
+        "SP5": 0,
+        "GP": 28
+      },
+      {
+        "unit": "20 ဘူး",
+        "Qty": 20,
+        "Unit": "ဆွဲ",
+        "nan.1": 15000,
+        "nan.2": "MMK",
+        "nan.3": 19000,
+        "nan.4": "MMK",
+        "SP1": 17500,
+        "SP2": 17500,
+        "SP3": 17500,
+        "SP4": 0,
+        "SP5": 0,
+        "GP": 28
+      },
+      {
+        "Qty": 10,
+        "Unit": "တွဲ",
+        "nan.1": 1500,
+        "nan.2": "MMK",
+        "nan.3": 2000,
+        "nan.4": "MMK",
+        "SP1": 1800,
+        "SP2": 1800,
+        "SP3": 1800,
+        "SP4": 0,
+        "SP5": 0,
+        "GP": 28
+      }
+    ],
+    "limit": false
+  },
+  {
+    "id": "e6d93ee5-fb1c-4910-92ba-2ad56ec719a6",
+    "Code": "SKM001",
+    "brand": "စင်္ကြာမင်း",
+    "category": "အထူးဆေး",
+    "subcategory": null,
+    "Short": "O01",
+    "Description": "စင်္ကြာမင်း အရိုးကျီးပေါင်းစားဆေး",
+    "variants": [
+      {
+        "unit": "1 ပုံး",
+        "Qty": 1,
+        "Unit": "ပုံး",
+        "nan.1": 712500,
+        "nan.2": "MMK",
+        "nan.3": 720000,
+        "nan.4": "MMK",
+        "SP1": 720000,
+        "SP2": 720000,
+        "SP3": 720000,
+        "SP4": 0,
+        "SP5": 0,
+        "GP": 1
+      },
+      {
+        "unit": "30 ဘူး",
+        "Qty": 30,
+        "Unit": "ဒါဇင်",
+        "nan.1": 23750,
+        "nan.2": "MMK",
+        "nan.3": 25000,
+        "nan.4": "MMK",
+        "SP1": 24250,
+        "SP2": 24125,
+        "SP3": 24000,
+        "SP4": 0,
+        "SP5": 0,
+        "GP": 1
+      },
+      {
+        "unit": "1 ပုံး",
+        "Qty": 12,
+        "Unit": "ဘူး",
+        "nan.1": 1980,
+        "nan.2": "MMK",
+        "nan.3": 2100,
+        "nan.4": "MMK",
+        "SP1": 2021,
+        "SP2": 2021,
+        "SP3": 2021,
+        "SP4": 0,
+        "SP5": 0,
+        "GP": 1
+      }
+    ],
+    "limit": false
+  },
+  {
+    "id": "d5d203df-ce14-41cc-8687-01baa9774657",
+    "Code": "FH1",
+    "brand": "Fame",
+    "category": "Honey Products",
+    "subcategory": null,
+    "Description": "Asparagus Honey",
+    "variants": [
+      {
+        "unit": "1 ပုံး",
+        "SP1": 165600,
+        "SP2": 165600,
+        "SP3": 165600
+      },
+      {
+        "unit": "20 ဘူး",
+        "SP1": 8280,
+        "SP2": 9000,
+        "SP3": 8370
+      }
+    ],
+    "limit": true
+  },
+  {
+    "id": "65e0747c-c2e9-42a8-897d-a211dceeadb3",
+    "Code": "FH2",
+    "brand": "Fame",
+    "category": "Honey Products",
+    "subcategory": null,
+    "Description": "Citric Honey",
+    "variants": [
+      {
+        "unit": "1 ပုံး",
+        "SP1": 165600,
+        "SP2": 165600,
+        "SP3": 165600
+      },
+      {
+        "unit": "20 ဘူး",
+        "SP1": 8280,
+        "SP2": 9000,
+        "SP3": 8370
+      }
+    ],
+    "limit": false
+  },
+  {
+    "id": "405ba9c9-66c2-461e-9fd9-0c3f979ebac7",
+    "Code": "FH3",
+    "brand": "Fame",
+    "category": "Honey Products",
+    "subcategory": null,
+    "Description": "Garlic Honey",
+    "variants": [
+      {
+        "unit": "1 ပုံး",
+        "SP1": 165600,
+        "SP2": 165600,
+        "SP3": 165600
+      },
+      {
+        "unit": "20 ဘူး",
+        "SP1": 8280,
+        "SP2": 9000,
+        "SP3": 8370
+      }
+    ],
+    "limit": true
+  },
+  {
+    "id": "650e3a64-85d5-4b4d-a13a-e9ffaf9f8205",
+    "Code": "FH4",
+    "brand": "Fame",
+    "category": "Honey Products",
+    "subcategory": null,
+    "Description": "Licorice Honey",
+    "variants": [
+      {
+        "unit": "1 ပုံး",
+        "SP1": 165600,
+        "SP2": 165600,
+        "SP3": 165600
+      },
+      {
+        "unit": "20 ဘူး",
+        "SP1": 8280,
+        "SP2": 9000,
+        "SP3": 8370
+      }
+    ],
+    "limit": false
+  },
+  {
+    "id": "62d41ce4-748e-480f-a853-acd7f3d639a4",
+    "Code": "KL036",
+    "brand": "DUMAX/Gold Power",
+    "category": "ကလေးဆေး",
+    "subcategory": null,
+    "Description": "GP8 (R+M)",
+    "variants": [
+      {
+        "unit": "1 ပုံး",
+        "SP1": 79380,
+        "SP2": 83400,
+        "SP3": 83400
+      },
+      {
+        "unit": "12 ဘူး",
+        "SP1": 6615,
+        "SP2": 6950,
+        "SP3": 6950
+      }
+    ],
+    "limit": false
+  },
+  {
+    "id": "2de9f05d-e4b7-43d3-9bf4-1bfa5f392475",
+    "Code": "KL037",
+    "brand": "DUMAX/Gold Power",
+    "category": "ကလေးဆေး",
+    "subcategory": null,
+    "Description": "GP5 (R+C+L)",
+    "variants": [
+      {
+        "unit": "1 ပုံး",
+        "SP1": 157575,
+        "SP2": 165000,
+        "SP3": 162600
+      },
+      {
+        "unit": "30 ဘူး",
+        "SP1": 5253,
+        "SP2": 5500,
+        "SP3": 5500
+      }
+    ],
+    "limit": false
+  },
+  {
+    "id": "49c4f3f5-1a6c-42fd-9efd-a08c404375df",
+    "Code": "KL038",
+    "brand": "DUMAX/Gold Power",
+    "category": "ကလေးဆေး",
+    "subcategory": null,
+    "Description": "GP4C+ (R+P&S)",
+    "variants": [
+      {
+        "unit": "1 ပုံး",
+        "SP1": 240660,
+        "SP2": 252000,
+        "SP3": 252000
+      },
+      {
+        "unit": "60 ဘူး",
+        "SP1": 4011,
+        "SP2": 4200,
+        "SP3": 4200
+      }
+    ],
+    "limit": true
+  },
+  {
+    "id": "cef13556-143a-4f95-aa7d-3415679e56c3",
+    "Code": "KL039",
+    "brand": "DUMAX/Gold Power",
+    "category": "ကလေးဆေး",
+    "subcategory": null,
+    "Description": "GP6 (R+C+L)",
+    "variants": [
+      {
+        "unit": "1 ပုံး",
+        "SP1": 109950,
+        "SP2": 115500,
+        "SP3": 115500
+      },
+      {
+        "unit": "30 ဘူး",
+        "SP1": 3665,
+        "SP2": 3850,
+        "SP3": 3850
+      }
+    ],
+    "limit": false
+  },
+  {
+    "id": "9960e982-b183-41b1-801f-6e0d575e5e12",
+    "Code": "KL040",
+    "brand": "DUMAX/Gold Power",
+    "category": "ကလေးဆေး",
+    "subcategory": null,
+    "Description": "GP4B+ (R+C)",
+    "variants": [
+      {
+        "unit": "1 ပုံး",
+        "SP1": 240660,
+        "SP2": 252000,
+        "SP3": 252000
+      },
+      {
+        "unit": "60 ဘူး",
+        "SP1": 4011,
+        "SP2": 4200,
+        "SP3": 4200
+      }
+    ],
+    "limit": false
+  },
+  {
+    "id": "1a88234b-e699-4dba-9c8e-a526f5d41216",
+    "Code": "KL041",
+    "brand": "DUMAX/Gold Power",
+    "category": "ကလေးဆေး",
+    "subcategory": null,
+    "Description": "GP4A+ (R+M)",
+    "variants": [
+      {
+        "unit": "1 ပုံး",
+        "SP1": 200580,
+        "SP2": 210000,
+        "SP3": 210000
+      },
+      {
+        "unit": "60 ဘူး",
+        "SP1": 3343,
+        "SP2": 3500,
+        "SP3": 3500
+      }
+    ],
+    "limit": false
+  },
+  {
+    "id": "0cc65b44-9fd7-40c4-b547-fadb78d35707",
+    "Code": "YN026",
+    "brand": "စိန်ငါးလုံး",
+    "category": "ပွေး/ယားနာလိမ်းဆေး",
+    "subcategory": null,
+    "Description": "ဆီနံ့လိမ်း အဝါ",
+    "variants": [
+      {
+        "unit": "1 ပုံး",
+        "SP1": 36000,
+        "SP2": 36700,
+        "SP3": 36700
+      },
+      {
+        "unit": "12 ဘူး",
+        "SP1": 3000,
+        "SP2": 3000,
+        "SP3": 3060
+      }
+    ],
+    "limit": false
+  },
+  {
+    "id": "71f6b06d-0830-48b1-ac3a-4e96e52862fa",
+    "Code": "YN027",
+    "brand": "စိန်ငါးလုံး",
+    "category": "ပွေး/ယားနာလိမ်းဆေး",
+    "subcategory": null,
+    "Description": "ဆီနံ့လိမ်း အစိမ်း",
+    "variants": [
+      {
+        "unit": "1 ပုံး",
+        "SP1": 15692,
+        "SP2": 17000,
+        "SP3": 17000
+      },
+      {
+        "unit": "12 ဘူး",
+        "SP1": 0,
+        "SP2": 0,
+        "SP3": 0
+      }
+    ],
+    "limit": false
+  },
+  {
+    "id": "2b434268-102d-4d7c-adb4-fb4b1fc1cc14",
+    "Code": "YN028",
+    "brand": "စိန်ငါးလုံး",
+    "category": "ပွေး/ယားနာလိမ်းဆေး",
+    "subcategory": null,
+    "Description": "ဆီနံ့လိမ်း အဖြူ",
+    "variants": [
+      {
+        "unit": "1 ပုံး",
+        "SP1": 32308,
+        "SP2": 35000,
+        "SP3": 33000
+      },
+      {
+        "unit": "12 ဘူး",
+        "SP1": 2693,
+        "SP2": 3000,
+        "SP3": 2750
+      }
+    ],
+    "limit": false
+  },
+  {
+    "id": "9485b8e9-bbe3-435c-8ec6-7b3af8456352",
+    "Code": "YN046",
+    "brand": "ပိုလို",
+    "category": "ပွေး/ယားနာလိမ်းဆေး",
+    "subcategory": null,
+    "Description": "ပိုးလိုလိမ်းဆေး",
+    "variants": [
+      {
+        "unit": "1 ပုံး",
+        "SP1": 24000,
+        "SP2": 25000,
+        "SP3": 25000
+      },
+      {
+        "unit": "12 ဘူး",
+        "SP1": 0,
+        "SP2": 0,
+        "SP3": 0
+      }
+    ],
+    "limit": false
+  },
+  {
+    "id": "b14ccc15-fbc4-42f8-a850-75c6e4199166",
+    "Code": "YN051",
+    "brand": "ပိုလို",
+    "category": "ပွေး/ယားနာလိမ်းဆေး",
+    "subcategory": null,
+    "Description": "ပိုးလိုလိမ်းဆေး (အထူး)",
+    "variants": [
+      {
+        "unit": "1 ပုံး",
+        "SP1": 0,
+        "SP2": 0,
+        "SP3": 0
+      },
+      {
+        "unit": "12 ဘူး",
+        "SP1": 2085,
+        "SP2": 2200,
+        "SP3": 2200
+      }
+    ],
+    "limit": false
+  },
+  {
+    "id": "912fa987-ff6d-4ced-b71e-db87ecf9c9b2",
+    "Code": "UB.C008",
+    "brand": "ဦးဘိုကြီး/ချက်ဆေး",
+    "category": "ချက်ဆေး",
+    "subcategory": null,
+    "Description": "မဟာ ချက်ဆေး",
+    "variants": [
+      {
+        "unit": "1 ပုံး",
+        "SP1": 399000,
+        "SP2": 407500,
+        "SP3": 407500
+      },
+      {
+        "unit": "10 ဘူး",
+        "SP1": 39900,
+        "SP2": 42000,
+        "SP3": 41200
+      },
+      {
+        "unit": "12 Pcs",
+        "SP1": 3325,
+        "SP2": 3500,
+        "SP3": 3435
+      }
+    ],
+    "limit": false
+  },
+  {
+    "id": "8bf0d056-1e5f-46d4-923f-29bdd80608a3",
+    "Code": "UB.C009",
+    "brand": "ဦးဘိုကြီး/ချက်ဆေး",
+    "category": "ချက်ဆေး",
+    "subcategory": null,
+    "Description": "အော်ဂဲနစ် ချက်ဆေး",
+    "variants": [
+      {
+        "unit": "1 ပုံး",
+        "SP1": 432000,
+        "SP2": 436000,
+        "SP3": 436000
+      },
+      {
+        "unit": "6 ဘူး",
+        "SP1": 72000,
+        "SP2": 75000,
+        "SP3": 73500
+      },
+      {
+        "unit": "12 Pcs",
+        "SP1": 6000,
+        "SP2": 6250,
+        "SP3": 6125
+      }
+    ],
+    "limit": true
+  },
+  {
+    "id": "1199bb98-7329-4ebd-ab57-186440994bb5",
+    "Code": "UB.C010",
+    "brand": "ဦးဘိုကြီး/ချက်ဆေး",
+    "category": "ချက်ဆေး",
+    "subcategory": null,
+    "Description": "အရမ်းပြင်း ချက်ဆေး",
+    "variants": [
+      {
+        "unit": "1 ပုံး",
+        "SP1": 39600,
+        "SP2": 40200,
+        "SP3": 40200
+      },
+      {
+        "unit": "12 ဘူး",
+        "SP1": 3300,
+        "SP2": 3500,
+        "SP3": 3350
+      }
+    ],
+    "limit": true
+  },
+  {
+    "id": "11245c58-c27a-44c8-a175-de29d276f67b",
+    "Code": "UB.C011",
+    "brand": "ဦးဘိုကြီး/ချက်ဆေး",
+    "category": "ချက်ဆေး",
+    "subcategory": null,
+    "Description": "လယ်စို ချက်ဆေး",
+    "variants": [
+      {
+        "unit": "1 ပုံး",
+        "SP1": 302400,
+        "SP2": 310000,
+        "SP3": 306000
+      },
+      {
+        "unit": "84 ဘူး",
+        "SP1": 3600,
+        "SP2": 4000,
+        "SP3": 3700
+      }
+    ],
+    "limit": false
+  },
+  {
+    "id": "8e34859e-9d64-4d0e-98f2-7f93bc9707da",
+    "Code": "UB.C012",
+    "brand": "ဦးဘိုကြီး/ချက်ဆေး",
+    "category": "ချက်ဆေး",
+    "subcategory": null,
+    "Description": "အော်ဂဲနစ် အဆင့်မြင့် ချက်ဆေး",
+    "variants": [
+      {
+        "unit": "1 ပုံး",
+        "SP1": 12800,
+        "SP2": 12800,
+        "SP3": 12800
+      },
+      {
+        "unit": "12 ဘူး",
+        "SP1": 1067,
+        "SP2": 1100,
+        "SP3": 1100
+      }
+    ],
+    "limit": true
+  },
+  {
+    "id": "ce8db977-786d-4ded-8cba-87535415d954",
+    "Code": "UB.C001",
+    "brand": "ဦးဘိုကြီး/ချက်ဆေး",
+    "category": "ဦးဘိုကြီး",
+    "subcategory": null,
+    "Description": "ချက်ဆေး မူလ",
+    "variants": [
+      {
+        "unit": "1 ဘူး",
+        "SP1": 14300,
+        "SP2": 15000,
+        "SP3": 14600
+      }
+    ],
+    "limit": false
+  },
+  {
+    "id": "d3717fb4-28e0-464f-a7a7-9df24fa25fce",
+    "Code": "UB.C002",
+    "brand": "ဦးဘိုကြီး/ချက်ဆေး",
+    "category": "ဦးဘိုကြီး",
+    "subcategory": null,
+    "Description": "ချက်ဆေး နူးညံ့",
+    "variants": [
+      {
+        "unit": "1 ဘူး",
+        "SP1": 19200,
+        "SP2": 20000,
+        "SP3": 19600
+      }
+    ],
+    "limit": false
+  },
+  {
+    "id": "46573ad4-d0ab-4969-b194-244b6474b2bd",
+    "Code": "UB.C003",
+    "brand": "ဦးဘိုကြီး/ချက်ဆေး",
+    "category": "ဦးဘိုကြီး",
+    "subcategory": null,
+    "Description": "ချက်ဆေး အနံ့ပြင်း",
+    "variants": [
+      {
+        "unit": "1 ဘူး",
+        "SP1": 19200,
+        "SP2": 20000,
+        "SP3": 19600
+      }
+    ],
+    "limit": false
+  },
+  {
+    "id": "b6e9e0a1-0fac-41ef-98c0-9117bea64def",
+    "Code": "UB.C004",
+    "brand": "ဦးဘိုကြီး/ချက်ဆေး",
+    "category": "ဦးဘိုကြီး",
+    "subcategory": null,
+    "Description": "ချက်ဆေး အနံ့ပါး",
+    "variants": [
+      {
+        "unit": "1 ဘူး",
+        "SP1": 4700,
+        "SP2": 5000,
+        "SP3": 4900
+      }
+    ],
+    "limit": true
+  },
+  {
+    "id": "dd0be6ef-6579-46b8-96ab-56447fc3e0b2",
+    "Code": "UB.C005",
+    "brand": "ဦးဘိုကြီး/ချက်ဆေး",
+    "category": "ဦးဘိုကြီး",
+    "subcategory": null,
+    "Description": "ချက်ဆေး အထူး",
+    "variants": [
+      {
+        "unit": "1 ဘူး",
+        "SP1": 8700,
+        "SP2": 9000,
+        "SP3": 8900
+      }
+    ],
+    "limit": true
+  }
+]

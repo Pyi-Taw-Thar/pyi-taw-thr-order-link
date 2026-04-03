@@ -1,59 +1,52 @@
-import { ChevronRight } from "lucide-react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 interface Product {
-  id: number;
+  id: string;
   name: string;
-  quantity: string;
   price: number;
-  originalPrice: number;
-  discount: string;
 }
-
-const products: Product[] = [
-  {
-    id: 1,
-    name: "ပါရာစီတမော ၅၀၀ မိလီဂရမ် (၁၀ လုံးပါ)",
-    quantity: "ဒီလိုက်စုံ (၃၀ ကျပ်)",
-    price: 1500,
-    originalPrice: 3000,
-    discount: "စျေးလျော့",
-  },
-  {
-    id: 2,
-    name: "ပါရာစီတမော ၅၀၀ မိလီဂရမ် (၁၀ လုံးပါ)",
-    quantity: "ဒီလိုက်စုံ (၁၀၀ ကျပ်)",
-    price: 1500,
-    originalPrice: 3000,
-    discount: "စျေးလျော့",
-  },
-  {
-    id: 3,
-    name: "ပါရာစီတမော ၅၀၀ မိလီဂရမ် (၁၀ လုံးပါ)",
-    quantity: "ဒီလိုက်စုံ (၃၀ ကျပ်)",
-    price: 1500,
-    originalPrice: 3000,
-    discount: "စျေးလျော့",
-  },
-  {
-    id: 4,
-    name: "ပါရာစီတမော ၅၀၀ မိလီဂရမ် (၁၀ လုံးပါ)",
-    quantity: "ဒီလိုက်စုံ (၁၀၀ ကျပ်)",
-    price: 1500,
-    originalPrice: 3000,
-    discount: "စျေးလျော့",
-  },
-];
 
 export default function LimitedSaleSection() {
   const navigate = useNavigate();
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchLimitedProducts = async () => {
+      try {
+        const response = await fetch("/medicines.json");
+        const data = await response.json();
+
+        // Filter products with limit: true
+        const limited = data
+          .filter((item: any) => item.limit === true)
+          .slice(0, 4) // Show only first 4 for display
+          .map((item: any) => ({
+            id: item.id,
+            name: item.Description,
+            price: item.variants?.[0]?.SP1 || 0,
+          }));
+
+        setProducts(limited);
+      } catch (error) {
+        console.error("Error fetching limited products:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLimitedProducts();
+  }, []);
+
+  if (loading || products.length === 0) return null;
 
   return (
-    <section className="bg-white py-8">
+    <section className="bg-white py-8 font-ChivoMono">
       <div className="px-4 space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-primary-dark   text-[20px] md:text-2xl font-semibold">
+            <h2 className="text-primary-dark text-[20px] md:text-2xl font-semibold">
               အကန့်သတ်ရသောဆေးများ
             </h2>
             <p className="text-gray-600 text-[10px] mt-1">
@@ -61,13 +54,10 @@ export default function LimitedSaleSection() {
             </p>
           </div>
           <button
-            onClick={() => {
-              navigate("/products");
-            }}
+            onClick={() => navigate("/products")}
             className="border-2 border-primary text-primary px-4 py-2 rounded-full font-semibold hover:bg-blue-50 transition-colors flex items-center gap-1 text-sm whitespace-nowrap"
           >
             ကြည့်မယ်
-
           </button>
         </div>
 
@@ -75,27 +65,28 @@ export default function LimitedSaleSection() {
           {products.map((product) => (
             <div
               key={product.id}
-              className="bg-gray-50 rounded-lg px-2 py-6 flex flex-col space-y-5"
+              className="bg-gray-50 rounded-lg px-3 py-6 flex flex-col justify-between space-y-4 border border-transparent hover:border-blue-100 transition-all"
             >
-              <div className="space-y-2">
-                <h3 className="text-gray-800 font-semibold text-sm">
+              <div className="space-y-0">
+                <h3 className="text-gray-800 font-bold text-[12px] line-clamp-2 min-h-[32px]">
                   {product.name}
                 </h3>
-                {/* <p className="text-gray-600 text-xs">{product.quantity}</p> */}
-              </div>
-
-              <div className="flex items-center gap-2">
-                <span className="text-primary font-bold text-[14px] font-mono">
-                  {product.price.toLocaleString()} <span className="text-[10px]">MMK</span>
-                </span>
-                <span className="bg-yellow-100 text-[#BFGA02] text-[10px] font-semibold px-1 py-1 rounded">
-                  ဘူး ၁၀၀ သာ
+                <span className="inline-block bg-yellow-100 text-[#BFGA02] text-[9px] font-bold px-2 py-1 rounded w-fit">
+                  အကန့်သတ်ဖြင့်သာ
                 </span>
               </div>
+              {/* 
+              <div className="space-y-0">
+                <div className="flex items-center justify-between">
+                  <span className="text-primary font-bold text-[14px]">
+                    {product.price.toLocaleString()} <span className="text-[10px]">MMK</span>
+                  </span>
+                </div>
+              </div> */}
 
               <button
-                onClick={() => navigate("/products")}
-                className="w-full bg-blue-600 text-white py-2 rounded-full font-semibold hover:bg-blue-700 transition-colors text-sm"
+                onClick={() => navigate(`/product/${product.id}`)}
+                className="w-full bg-blue-600 text-white py-2.5 rounded-xl font-bold hover:bg-blue-700 active:scale-95 transition-all text-[11px]"
               >
                 ဆေးမှာမယ်
               </button>

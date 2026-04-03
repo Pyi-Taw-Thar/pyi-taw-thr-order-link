@@ -1,21 +1,21 @@
-import { Search, ChevronDown, Filter, XCircle, ChevronUp, Plus, Minus } from 'lucide-react';
-import { useState } from 'react';
+import { Search, ChevronDown, Filter, XCircle, ChevronUp, Plus, Minus, ShoppingCart } from 'lucide-react';
+import { useState, useEffect, useMemo } from 'react';
 import { useCart } from '../context/CartContext';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 interface PriceTier {
+  unit: string;
   quantity: string;
   price: number;
 }
 
 interface Product {
-  id: number;
+  id: string;
   name: string;
   prices: PriceTier[];
-}
-
-interface Category {
-  title: string;
-  products: Product[];
+  brand?: string;
+  category?: string;
+  code?: string;
 }
 
 interface DrawerCategory {
@@ -23,115 +23,99 @@ interface DrawerCategory {
   count: number;
 }
 
-const productData: Category[] = [
-  {
-    title: 'ဆီးချိုရောဂါဆေးများ',
-    products: [
-      {
-        id: 1,
-        name: 'တစ်ကိုယ်လုံး နာလုံးအားဆေး',
-        prices: [
-          { quantity: '10 ကတ်', price: 1400 },
-          { quantity: '50 ကတ်', price: 1300 },
-          { quantity: '100 ကတ်', price: 1200 },
-        ]
-      },
-      {
-        id: 2,
-        name: 'ယူငါးကောင် ဆီးချို',
-        prices: [
-          { quantity: '1 ဗူး', price: 5000 },
-        ]
-      },
-      {
-        id: 3,
-        name: 'ဟေမီတွံ ဆီးချို',
-        prices: [
-          { quantity: '10 လုံး', price: 1500 },
-        ]
-      },
-      {
-        id: 4,
-        name: 'ရွှေသဇင် ဆီးချို',
-        prices: [
-          { quantity: '1 ဗူး', price: 3500 },
-        ]
-      },
-      {
-        id: 6,
-        name: 'အမေ့သား ဆီးချို',
-        prices: [
-          { quantity: '1 ကတ်', price: 800 },
-        ]
-      },
-      {
-        id: 7,
-        name: 'ဆေးနက်ကျော် (ဘုရားကြီး)',
-        prices: [
-          { quantity: '1 ဗူး', price: 12000 },
-        ]
-      },
-      {
-        id: 8,
-        name: 'ရှန်ဘာလာ ဆီးချိုဆေး',
-        prices: [
-          { quantity: '1 ထုပ်', price: 2000 },
-        ]
-      },
-    ]
-  },
-  {
-    title: 'သွေးတိုးရောဂါဆေးများ',
-    products: [
-      {
-        id: 10,
-        name: 'ယူငါးကောင် သွေးတိုး',
-        prices: [
-          { quantity: '1 ဗူး', price: 4500 },
-        ]
-      },
-      {
-        id: 11,
-        name: 'ဟေမီတွံ သွေးတိုးကျ',
-        prices: [
-          { quantity: '10 လုံး', price: 1800 },
-        ]
-      },
-    ]
-  }
-];
-
-const drawerCategories: DrawerCategory[] = [
-  { title: 'နာတာရှည်နှင့် အတွင်းပိုင်းရောဂါများ', count: 21 },
-  { title: 'အရိုး၊ အကြောနှင့် အမျိုးသားကျန်းမာရေး', count: 97 },
-  { title: 'အသက်ရှူလမ်းကြောင်းနှင့် အအေးမိရောဂါ', count: 52 },
-  { title: 'အထူးကုသမှုဆေးများ', count: 70 },
-  { title: 'အာရုံခံအင်္ဂါနှင့် သွားကျန်းမာရေး', count: 44 },
-  { title: 'တိုင်းရင်းဆေးနှင့် နာမည်ကြီးတံဆိပ်များ', count: 38 },
-  { title: 'အားဖြည့်ပစ္စည်းနှင့် လူသုံးကုန်', count: 19 },
-];
-
-import { useNavigate } from 'react-router-dom';
-
 export default function Products() {
   const navigate = useNavigate();
-  const [isCategoryDrawerOpen, setIsCategoryDrawerOpen] = useState(false);
-  const [expandedProductId, setExpandedProductId] = useState<number | null>(null);
-  const [quantities, setQuantities] = useState<Record<number, number>>({});
-  const { addToCart } = useCart();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const selectedBrand = searchParams.get('brand') || null;
 
-  const toggleProduct = (id: number) => {
-    setExpandedProductId(expandedProductId === id ? null : id);
+  const [isCategoryDrawerOpen, setIsCategoryDrawerOpen] = useState(false);
+  const [expandedProductId, setExpandedProductId] = useState<string | null>(null);
+  const [selectedVariantIndex, setSelectedVariantIndex] = useState<number>(0);
+  const [quantities, setQuantities] = useState<Record<string, number>>({});
+  const [allMedicines, setAllMedicines] = useState<Product[]>([]);
+  const [drawerCategories, setDrawerCategories] = useState<DrawerCategory[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { addToCart, cartItems } = useCart();
+
+  useEffect(() => {
+    const fetchMedicines = async () => {
+      try {
+        const response = await fetch('/medicines.json');
+        const data = await response.json();
+
+        const brandCount: Record<string, number> = {};
+        const medicines: Product[] = data.map((item: any) => {
+          const brand = item.brand || 'အခြား';
+          brandCount[brand] = (brandCount[brand] || 0) + 1;
+
+          return {
+            id: item.id,
+            name: item.Description,
+            brand: item.brand,
+            category: item.category || 'အထွေထွေ',
+            code: item.Code,
+            prices: item.variants.map((v: any) => ({
+              unit: v.unit,
+              quantity: `${v.Qty} ${v.Unit}`,
+              price: v.SP1 || v.nan1 || 0
+            }))
+          };
+        });
+
+        const formattedDrawerCats: DrawerCategory[] = Object.entries(brandCount).map(([title, count]) => ({
+          title,
+          count
+        }));
+
+        setAllMedicines(medicines);
+        setDrawerCategories(formattedDrawerCats);
+      } catch (error) {
+        console.error('Error fetching medicines:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMedicines();
+  }, []);
+
+  // Filter and Group products based on selectedBrand
+  const productData = useMemo(() => {
+    let filtered = allMedicines;
+    if (selectedBrand) {
+      filtered = allMedicines.filter(m => m.brand === selectedBrand);
+    }
+
+    const categoriesMap: Record<string, Product[]> = {};
+    filtered.forEach(product => {
+      const cat = product.category || 'အထွေထွေ';
+      if (!categoriesMap[cat]) categoriesMap[cat] = [];
+      categoriesMap[cat].push(product);
+    });
+
+    return Object.entries(categoriesMap).map(([title, products]) => ({
+      title,
+      products
+    }));
+  }, [allMedicines, selectedBrand]);
+
+  const toggleProduct = (id: string) => {
+    if (expandedProductId === id) {
+      setExpandedProductId(null);
+    } else {
+      setExpandedProductId(id);
+      setSelectedVariantIndex(0); // Reset to first variant when expanding
+    }
   };
 
-  const updateQuantity = (id: number, delta: number) => {
+  const updateQuantity = (id: string, delta: number) => {
     setQuantities(prev => ({
       ...prev,
       [id]: Math.max(0, (prev[id] || 0) + delta)
     }));
   };
 
-  const setQuantityValue = (id: number, value: string) => {
+  const setQuantityValue = (id: string, value: string) => {
     const num = parseInt(value);
     setQuantities(prev => ({
       ...prev,
@@ -139,13 +123,20 @@ export default function Products() {
     }));
   };
 
+  const getProductCartQty = (productId: string) => {
+    return cartItems
+      .filter(item => item.id.startsWith(productId))
+      .reduce((sum, item) => sum + item.quantity, 0);
+  };
+
   const handleAddToCart = (product: Product) => {
     const qty = quantities[product.id] || 0;
     if (qty > 0) {
+      const selectedVariant = product.prices[selectedVariantIndex] || product.prices[0];
       addToCart({
-        id: product.id,
-        name: product.name,
-        price: product.prices[0].price
+        id: `${product.id}-${selectedVariant.unit}`,
+        name: `${product.name} (${selectedVariant.unit})`,
+        price: selectedVariant.price
       }, qty);
 
       setQuantities(prev => ({ ...prev, [product.id]: 0 }));
@@ -153,8 +144,30 @@ export default function Products() {
     }
   };
 
+  const handleBrandSelect = (brandName: string | null) => {
+    if (brandName) {
+      setSearchParams({ brand: brandName });
+    } else {
+      setSearchParams({});
+    }
+    setIsCategoryDrawerOpen(false);
+    setExpandedProductId(null);
+  };
+
+  if (loading) {
+    return (
+      <div className="bg-[#f8f9fa] min-h-screen flex items-center justify-center">
+        <div className="text-primary font-bold animate-pulse">ဆေးဝါးများ ရှာဖွေနေပါသည်...</div>
+      </div>
+    );
+  }
+
+  // Calculate stats
+  const totalCategories = productData.length;
+  const totalProducts = productData.reduce((sum, cat) => sum + cat.products.length, 0);
+
   return (
-    <div className="bg-[#f8f9fa] min-h-screen pb-20">
+    <div className="bg-[#f8f9fa] min-h-screen pb-20 font-ChivoMono">
       {/* Search Bar section */}
       <div className="bg-white px-4 py-4 sticky top-16 z-40">
         <div
@@ -176,17 +189,25 @@ export default function Products() {
               onClick={() => setIsCategoryDrawerOpen(true)}
               className="flex items-center gap-2 group transition-all"
             >
-              <h1 className=" md:text-2xl text-[14px] font-bold text-primary group-hover:text-blue-600 transition-colors">နာတာရှည်ရောဂါများ</h1>
+              <h1 className=" md:text-2xl text-[14px] font-bold text-primary group-hover:text-blue-600 transition-colors">
+                {selectedBrand || 'ဆေးအမှတ်တံဆိပ်များ'}
+              </h1>
               <ChevronDown className="w-6 h-6 text-blue-600 group-hover:scale-110 transition-transform" />
             </button>
-            <p className="text-gray-500 text-[10px]">
-              ရောဂါ <span className="font-bold text-gray-800">၅</span> မျိုး / ဆေးဝါး <span className="font-bold text-gray-800">၃၁</span> မျိုး
-            </p>
+            <div className="flex items-center gap-2">
+              <p className="text-gray-500 text-[10px]">
+                အမျိုးအစား <span className="font-bold text-gray-800">{totalCategories}</span> မျိုး / ဆေးဝါး <span className="font-bold text-gray-800">{totalProducts}</span> မျိုး
+              </p>
+              {selectedBrand && (
+                <button
+                  onClick={() => handleBrandSelect(null)}
+                  className="text-red-500 text-[10px] font-bold hover:underline flex items-center gap-0.5"
+                >
+                  <XCircle className="w-3 h-3" /> အကုန်ပြမယ်
+                </button>
+              )}
+            </div>
           </div>
-          {/* <button className="flex items-center gap-2 border border-primary text-primary px-4 py-2 rounded-full text-[8px] font-semibold bg-white hover:bg-blue-50 transition-colors">
-            ရောဂါအလိုက်ကြည့်မယ်
-            <Filter className="w-4 h-4" />
-          </button> */}
         </div>
 
         {/* Product Sections */}
@@ -204,14 +225,16 @@ export default function Products() {
                   >
                     <div className="p-3 pr-4 flex items-center justify-between">
                       <div className="flex items-center gap-4">
-                        <div className="w-8 h-8 md:w-12 md:h-12 rounded-full border border-blue-100 flex items-center justify-center text-blue-500 text-sm font-bold bg-white">
-                          {product.id}
-                        </div>
                         <span
                           onClick={() => navigate(`/product/${product.id}`)}
-                          className="text-[#1a1a1a] font-bold text-[12px] md:text-[14px] cursor-pointer hover:text-blue-600 transition-colors"
+                          className="text-[#1a1a1a] font-bold text-[12px] md:text-[14px] cursor-pointer hover:text-blue-600 transition-colors inline-flex items-center gap-2"
                         >
                           {product.name}
+                          {getProductCartQty(product.id) > 0 && (
+                            <span className="bg-green-100 text-green-600 text-[10px] px-1.5 py-0.5 rounded-full flex items-center gap-1">
+                              <ShoppingCart className="w-3 h-3" /> {getProductCartQty(product.id)}
+                            </span>
+                          )}
                         </span>
                       </div>
                       <button
@@ -227,14 +250,29 @@ export default function Products() {
                     </div>
 
                     {expandedProductId === product.id && (
-                      <div className="px-10 pb-4 space-y-3">
+                      <div className="px-4 pb-4 space-y-2">
+                        <div className="text-[10px] font-bold text-gray-400 px-6 uppercase tracking-wider mb-1">ဝယ်ယူမည့်အမျိုးအစား ရွေးချယ်ပါ</div>
                         {product.prices.map((price, pIdx) => (
-                          <div key={pIdx} className="flex items-center justify-between text-sm">
-                            <span className="text-gray-600 font-medium text-[12px] md:text-[14px]">{price.quantity}</span>
-                            <div className="flex-1 border-b border-dotted border-gray-400 mx-4 h-0 mt-2" />
+                          <div
+                            key={pIdx}
+                            onClick={() => setSelectedVariantIndex(pIdx)}
+                            className={`flex items-center justify-between p-3 px-6 rounded-xl cursor-pointer transition-all border-2 ${selectedVariantIndex === pIdx
+                              ? 'bg-white border-blue-500 shadow-sm'
+                              : 'border-transparent hover:bg-white/50'
+                              }`}
+                          >
+                            <div className="flex flex-col">
+                              <span className={`font-bold text-[12px] md:text-[14px] ${selectedVariantIndex === pIdx ? 'text-blue-600' : 'text-gray-700'}`}>
+                                {price.quantity}
+                              </span>
+                              {/* <span className="text-[10px] text-gray-400">{price.quantity}</span> */}
+                            </div>
+                            <div className="flex-1 border-b border-dotted border-gray-300 mx-4 h-0 mt-1" />
                             <div className="flex items-baseline gap-1">
-                              <span className="text-blue-600 font-bold text-[12px] md:text-[14px]">{price.price.toLocaleString()}</span>
-                              <span className="text-blue-600 text-[10px] font-bold">MMK</span>
+                              <span className={`font-bold text-[12px] md:text-[14px] ${selectedVariantIndex === pIdx ? 'text-blue-600' : 'text-gray-900'}`}>
+                                {price.price.toLocaleString()}
+                              </span>
+                              <span className={`text-[10px] font-bold ${selectedVariantIndex === pIdx ? 'text-blue-600' : 'text-gray-500'}`}>MMK</span>
                             </div>
                           </div>
                         ))}
@@ -297,7 +335,7 @@ export default function Products() {
           <div className="fixed bottom-0 left-0 right-0 bg-white rounded-t-[40px] z-50 p-6 pt-8 animate-in slide-in-from-bottom duration-300">
             <div className="max-w-2xl mx-auto space-y-6">
               <div className="flex items-center justify-between">
-                <h2 className="md:text-2xl text-[14px ] font-bold text-primary">ရောဂါအမျိုးအစားများ</h2>
+                <h2 className="md:text-2xl text-[14px] font-bold text-primary">ဆေးအမှတ်တံဆိပ်များ</h2>
                 <button
                   onClick={() => setIsCategoryDrawerOpen(false)}
                   className="flex items-center gap-1 border border-primary text-primary px-3 py-1.5 rounded-full text-[8px] font-bold bg-white hover:bg-blue-50 transition-colors"
@@ -306,12 +344,21 @@ export default function Products() {
                 </button>
               </div>
 
-              <div className="space-y-1">
+              <div className="space-y-1 h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+                <button
+                  className={`w-full flex items-center justify-between py-4 border-b border-dashed border-gray-200 hover:bg-gray-50 px-2 rounded-lg transition-colors group text-left ${!selectedBrand ? 'bg-blue-50' : ''}`}
+                  onClick={() => handleBrandSelect(null)}
+                >
+                  <span className="font-bold text-[12px]">အကုန်ပြမယ်</span>
+                  <span className="text-gray-500 font-medium text-[12px]">
+                    ဆေးဝါး <span className="font-bold text-gray-800">{allMedicines.length}</span> မျိုး
+                  </span>
+                </button>
                 {drawerCategories.map((item, index) => (
                   <button
                     key={index}
-                    className="w-full flex items-center justify-between py-4 border-b border-dashed border-gray-200 last:border-0 hover:bg-gray-50 px-2 rounded-lg transition-colors group text-left"
-                    onClick={() => setIsCategoryDrawerOpen(false)}
+                    className={`w-full flex items-center justify-between py-4 border-b border-dashed border-gray-200 last:border-0 hover:bg-gray-50 px-2 rounded-lg transition-colors group text-left ${selectedBrand === item.title ? 'bg-blue-50' : ''}`}
+                    onClick={() => handleBrandSelect(item.title)}
                   >
                     <span className="font-bold text-[12px]">{item.title}</span>
                     <span className="text-gray-500 font-medium text-[12px]">

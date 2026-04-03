@@ -21,8 +21,9 @@ export default {
         },
       },
       fontFamily: {
-        sans: ['Tagus', 'sans-serif'],
+        sans: ['ChivoMono', 'monospace'],
         mono: ['ChivoMono', 'monospace'],
+        ChivoMono: ['ChivoMono', 'monospace'],
       },
     },
   },
