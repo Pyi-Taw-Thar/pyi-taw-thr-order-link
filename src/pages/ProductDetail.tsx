@@ -188,7 +188,7 @@ export default function ProductDetail() {
                 <div className="flex flex-col items-start gap-1">
                   <div className="flex items-center gap-2">
                     <span className={`text-[15px] font-bold ${selectedVariantIndex === index ? 'text-primary' : 'text-gray-700'}`}>
-                      {v.Qty} {v.Unit}
+                      {v.unit}
                     </span>
                     {getVariantCartQty(v.unit) > 0 && (
                       <span className="bg-green-100 text-green-600 text-[9px] font-bold px-1.5 py-0.5 rounded-full flex items-center gap-0.5">

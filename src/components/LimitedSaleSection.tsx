@@ -42,7 +42,7 @@ export default function LimitedSaleSection() {
   if (loading || products.length === 0) return null;
 
   return (
-    <section className="bg-white py-8 font-ChivoMono">
+    <section className="bg-white py-8 px-2 md:px-40  font-ChivoMono">
       <div className="px-4 space-y-6">
         <div className="flex items-center justify-between">
           <div>
@@ -68,7 +68,7 @@ export default function LimitedSaleSection() {
               className="bg-gray-50 rounded-lg px-3 py-6 flex flex-col justify-between space-y-4 border border-transparent hover:border-blue-100 transition-all"
             >
               <div className="space-y-0">
-                <h3 className="text-gray-800 font-bold text-[12px] line-clamp-2 min-h-[32px]">
+                <h3 className="text-gray-800 font-bold text-[14px] line-clamp-2 min-h-[32px]">
                   {product.name}
                 </h3>
                 <span className="inline-block bg-yellow-100 text-[#BFGA02] text-[9px] font-bold px-2 py-1 rounded w-fit">

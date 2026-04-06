@@ -1,14 +1,16 @@
 import { ShoppingCart, Trash2, Plus, Minus, CheckCircle } from 'lucide-react';
 import { useCart } from '../context/CartContext';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 
 export default function Cart() {
+  const navigate = useNavigate();
   const { cartItems, updateQuantity, setQuantity, removeFromCart, clearCart, totalPrice } = useCart();
   const [isSuccess, setIsSuccess] = useState(false);
 
   const handleOrder = () => {
     setIsSuccess(true);
+
     setTimeout(() => {
       clearCart();
     }, 500);
@@ -43,7 +45,7 @@ export default function Cart() {
             </Link>
           </div>
         ) : (
-          <div className="px-4 space-y-4">
+          <div className="px-4 space-y-4 pb-20">
             {cartItems.map((item, index) => (
               <div key={item.id} className="bg-white rounded-3xl p-5 border border-gray-100 shadow-sm relative overflow-hidden">
                 <div className="flex items-start justify-between">
@@ -157,7 +159,10 @@ export default function Cart() {
             </div>
 
             <button
-              onClick={() => setIsSuccess(false)}
+              onClick={() => {
+                setIsSuccess(false);
+                navigate("/");
+              }}
               className="w-full bg-primary text-white py-3 md:py-4 rounded-2xl font-bold text-[14px] md:text-lg shadow-lg active:scale-95 transition-all"
             >
               ဆက်လက်ဝယ်ယူမယ်

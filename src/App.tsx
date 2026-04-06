@@ -6,9 +6,17 @@ import Cart from './pages/Cart';
 import About from './pages/About';
 import Search from './pages/Search';
 import ProductDetail from './pages/ProductDetail';
+import Login from './pages/Login';
+
 import { CartProvider } from './context/CartContext';
 
 function App() {
+  const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+
+  if (!isLoggedIn) {
+    return <Login />;
+  }
+
   return (
     <BrowserRouter>
       <CartProvider>
@@ -22,6 +30,7 @@ function App() {
               <Route path="/about" element={<About />} />
               <Route path="/search" element={<Search />} />
               <Route path="/product/:id" element={<ProductDetail />} />
+              <Route path="*" element={<Home />} />
             </Routes>
           </main>
         </div>
@@ -29,5 +38,6 @@ function App() {
     </BrowserRouter>
   );
 }
+
 
 export default App;

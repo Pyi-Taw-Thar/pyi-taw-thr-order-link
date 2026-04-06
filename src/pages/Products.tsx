@@ -56,7 +56,7 @@ export default function Products() {
             code: item.Code,
             prices: item.variants.map((v: any) => ({
               unit: v.unit,
-              quantity: `${v.Qty} ${v.Unit}`,
+              quantity: `${v.unit}`,
               price: v.SP1 || v.nan1 || 0
             }))
           };
@@ -227,7 +227,7 @@ export default function Products() {
                       <div className="flex items-center gap-4">
                         <span
                           onClick={() => navigate(`/product/${product.id}`)}
-                          className="text-[#1a1a1a] font-bold text-[12px] md:text-[14px] cursor-pointer hover:text-blue-600 transition-colors inline-flex items-center gap-2"
+                          className="text-[#1a1a1a] font-bold text-[14px] md:text-[14px] cursor-pointer hover:text-blue-600 transition-colors inline-flex items-center gap-2"
                         >
                           {product.name}
                           {getProductCartQty(product.id) > 0 && (
