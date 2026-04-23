@@ -6,7 +6,7 @@ export default function Login() {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (phoneNumber === "09955255972") {
+    if (phoneNumber === "09955255972" || phoneNumber === "09123456789") {
       // Save login state
       localStorage.setItem("user_phone", phoneNumber);
       localStorage.setItem("isLoggedIn", "true");
@@ -15,7 +15,7 @@ export default function Login() {
     }
   };
 
-  const isValidPhone = phoneNumber === "09955255972";
+  const isValidPhone = phoneNumber === "09955255972" || phoneNumber === "09123456789";
 
   return (
     <div className="h-[calc(100vh-44px)] bg-white flex flex-col">
