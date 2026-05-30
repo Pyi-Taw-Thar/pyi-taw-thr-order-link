@@ -127,6 +127,7 @@ export default function Search() {
       const selectedVariant = product.prices[selectedVariantIndex] || product.prices[0];
       addToCart({
         id: `${product.id}-${selectedVariant.unit}`,
+        inventoryId: product.id,
         name: `${product.name} (${selectedVariant.unit})`,
         price: selectedVariant.price
       }, qty);

@@ -1,44 +1,35 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
+import api from "../services/axios";
 
-interface Category {
+interface Brand {
   id: string | number;
   title: string;
 }
 
-export default function CategorySection() {
+export default function BrandSection() {
   const navigate = useNavigate();
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [brands, setBrands] = useState<Brand[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchMedicines = async () => {
+    const fetchBrands = async () => {
       try {
-        const response = await fetch("/medicines.json");
-        const data = await response.json();
-
-        // Extract unique brands and categories
-        const brands = data.filter((m: any) => m.brand).map((m: any) => m.brand.trim());
-        // const categoriesData = data.filter((m: any) => m.category).map((m: any) => m.category.trim());
-
-        // Merge and deduplicate
-        const uniqueItems = [...new Set([...brands])];
-
-        // Format them as Category objects
-        const formattedCategories = uniqueItems.map((item, index) => ({
+        const response = await api.get("/ecommerce/products/brands");
+        const data: string[] = response.data.data;
+        const formatted = data.map((item, index) => ({
           id: index + 1,
-          title: item
+          title: item,
         }));
-
-        setCategories(formattedCategories);
+        setBrands(formatted);
       } catch (error) {
-        console.error("Error fetching medicines:", error);
+        console.error("Error fetching brands:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchMedicines();
+    fetchBrands();
   }, []);
 
   if (loading) return null;
@@ -51,14 +42,14 @@ export default function CategorySection() {
         </h2>
 
         <div className="grid grid-cols-3 md:grid-cols-5 gap-3">
-          {categories.map((category, index) => (
+          {brands.map((brand, index) => (
             <button
-              key={category.id}
-              onClick={() => navigate(`/products?brand=${encodeURIComponent(category.title)}`)}
+              key={brand.id}
+              onClick={() => navigate(`/products?brand=${encodeURIComponent(brand.title)}`)}
               className="px-5 h-16 md:h-16 rounded-xl bg-white border border-gray-100 shadow-sm text-primary-dark font-semibold text-[13px] md:text-[18px] hover:bg-blue-50 hover:border-blue-200 hover:scale-105 transition-all text-center min-w-[100px] md:min-w-[160px] animate-in fade-in slide-in-from-bottom duration-500 font-ChivoMono"
               style={{ animationDelay: `${index * 50}ms` }}
             >
-              {category.title}
+              {brand.title}
             </button>
           ))}
         </div>

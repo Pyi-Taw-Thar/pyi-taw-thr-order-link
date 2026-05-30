@@ -1,10 +1,11 @@
-import { Menu, ShoppingCart, LogOut } from "lucide-react";
+import { Menu, ShoppingCart, LogOut, User } from "lucide-react";
 
 
 import { useState } from "react";
 import { useCart } from "../context/CartContext";
 import { Link, useNavigate } from "react-router-dom";
 import LogoutModal from "./LogoutModal";
+import authService from "../services/auth.service";
 
 
 export default function Navbar() {
@@ -14,8 +15,7 @@ export default function Navbar() {
   const { cartCount } = useCart();
 
   const handleLogout = () => {
-    localStorage.removeItem("isLoggedIn");
-    localStorage.removeItem("user_phone");
+    authService.logout();
     window.location.reload();
   };
 
@@ -54,6 +54,12 @@ export default function Navbar() {
             </button>
 
 
+            <Link to="/profile" className="relative group">
+              <div className="w-10 h-10 md:w-12 md:h-12 bg-white border border-gray-100 rounded-xl flex items-center justify-center hover:border-blue-100 hover:bg-blue-50 transition-all">
+                <User className="w-5 h-5 md:w-6 md:h-6 text-gray-500 group-hover:text-primary transition-colors" />
+              </div>
+            </Link>
+
             <Link to="/cart" className="relative group">
               <div className="w-10 h-10 md:w-12 md:h-12 bg-white border border-primary-light/30 rounded-xl flex items-center justify-center group-hover:bg-primary/5 transition-colors">
                 <ShoppingCart className="w-5 h-5 md:w-6 md:h-6 text-primary" />
@@ -91,6 +97,13 @@ export default function Navbar() {
                 className="text-gray-700 font-medium text-[14px] md:text-base hover:text-primary transition-colors"
               >
                 Cart
+              </Link>
+              <Link
+                to="/profile"
+                onClick={() => setIsMenuOpen(false)}
+                className="text-gray-700 font-medium text-[14px] md:text-base hover:text-primary transition-colors"
+              >
+                Profile
               </Link>
               <button
                 onClick={() => {

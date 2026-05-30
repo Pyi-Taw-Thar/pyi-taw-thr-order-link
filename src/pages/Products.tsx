@@ -1,7 +1,8 @@
-import { Search, ChevronDown, Filter, XCircle, ChevronUp, Plus, Minus, ShoppingCart } from 'lucide-react';
+import { Search, ChevronDown, ChevronUp, Plus, Minus, ShoppingCart, ArrowLeft } from 'lucide-react';
 import { useState, useEffect, useMemo } from 'react';
 import { useCart } from '../context/CartContext';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import api from '../services/axios';
 
 interface PriceTier {
   unit: string;
@@ -18,93 +19,145 @@ interface Product {
   code?: string;
 }
 
-interface DrawerCategory {
-  title: string;
-  count: number;
+interface WholesalePrice {
+  unit: string;
+  quantity: number;
+  price: number;
+}
+
+interface ApiProductItem {
+  _id: string;
+  quantity: number;
+  product: {
+    _id: string;
+    productName: string;
+    productCode: string;
+    SKU: string;
+    category: string;
+    brand: string;
+    unitOfMeasure: string;
+    sellingPrice: number;
+    wholesalePrices: WholesalePrice[];
+    images: string[];
+  };
 }
 
 export default function Products() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const selectedBrand = searchParams.get('brand') || null;
+  const selectedCategory = searchParams.get('category') || null;
 
-  const [isCategoryDrawerOpen, setIsCategoryDrawerOpen] = useState(false);
   const [expandedProductId, setExpandedProductId] = useState<string | null>(null);
   const [selectedVariantIndex, setSelectedVariantIndex] = useState<number>(0);
   const [quantities, setQuantities] = useState<Record<string, number>>({});
-  const [allMedicines, setAllMedicines] = useState<Product[]>([]);
-  const [drawerCategories, setDrawerCategories] = useState<DrawerCategory[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [products, setProducts] = useState<ApiProductItem[]>([]);
+  const [prodLoading, setProdLoading] = useState(false);
+  const [brands, setBrands] = useState<string[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
+  const [catLoading, setCatLoading] = useState(false);
   const { addToCart, cartItems } = useCart();
 
   useEffect(() => {
-    const fetchMedicines = async () => {
+    const fetchBrands = async () => {
       try {
-        const response = await fetch('/medicines.json');
-        const data = await response.json();
-
-        const brandCount: Record<string, number> = {};
-        const medicines: Product[] = data.map((item: any) => {
-          const brand = item.brand || 'အခြား';
-          brandCount[brand] = (brandCount[brand] || 0) + 1;
-
-          return {
-            id: item.id,
-            name: item.Description,
-            brand: item.brand,
-            category: item.category || 'အထွေထွေ',
-            code: item.Code,
-            prices: item.variants.map((v: any) => ({
-              unit: v.unit,
-              quantity: `${v.unit}`,
-              price: v.SP1 || v.nan1 || 0
-            }))
-          };
-        });
-
-        const formattedDrawerCats: DrawerCategory[] = Object.entries(brandCount).map(([title, count]) => ({
-          title,
-          count
-        }));
-
-        setAllMedicines(medicines);
-        setDrawerCategories(formattedDrawerCats);
+        const response = await api.get('/ecommerce/products/brands');
+        setBrands(response.data.data);
       } catch (error) {
-        console.error('Error fetching medicines:', error);
-      } finally {
-        setLoading(false);
+        console.error('Error fetching brands:', error);
       }
     };
 
-    fetchMedicines();
-  }, []);
+    if (!selectedBrand) {
+      fetchBrands();
+    }
+  }, [selectedBrand]);
 
-  // Filter and Group products based on selectedBrand
-  const productData = useMemo(() => {
-    let filtered = allMedicines;
-    if (selectedBrand) {
-      filtered = allMedicines.filter(m => m.brand === selectedBrand);
+  useEffect(() => {
+    if (!selectedBrand) {
+      setCategories([]);
+      return;
     }
 
+    const fetchCategories = async () => {
+      setCatLoading(true);
+      try {
+        const response = await api.get('/ecommerce/products/categories', {
+          params: { brand: selectedBrand }
+        });
+        setCategories(response.data.data);
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+      } finally {
+        setCatLoading(false);
+      }
+    };
+
+    fetchCategories();
+  }, [selectedBrand]);
+
+  useEffect(() => {
+    if (!selectedBrand || !selectedCategory) {
+      setProducts([]);
+      return;
+    }
+
+    const fetchProducts = async () => {
+      setProdLoading(true);
+      try {
+        const response = await api.get('/ecommerce/products', {
+          params: { brand: selectedBrand, category: selectedCategory }
+        });
+        setProducts(response.data.data);
+      } catch (error) {
+        console.error('Error fetching products:', error);
+      } finally {
+        setProdLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, [selectedBrand, selectedCategory]);
+
+  const productData = useMemo(() => {
     const categoriesMap: Record<string, Product[]> = {};
-    filtered.forEach(product => {
-      const cat = product.category || 'အထွေထွေ';
+
+    products.forEach(item => {
+      const p = item.product;
+      const cat = p.category || 'အထွေထွေ';
+
+      const product: Product = {
+        id: p._id,
+        name: p.productName,
+        brand: p.brand,
+        category: cat,
+        code: p.productCode,
+        prices: [
+          { unit: p.unitOfMeasure, quantity: p.unitOfMeasure, price: p.sellingPrice },
+          ...p.wholesalePrices.map(w => ({
+            unit: w.unit,
+            quantity: w.unit,
+            price: w.price
+          }))
+        ]
+      };
+
       if (!categoriesMap[cat]) categoriesMap[cat] = [];
       categoriesMap[cat].push(product);
     });
 
-    return Object.entries(categoriesMap).map(([title, products]) => ({
+    return Object.entries(categoriesMap).map(([title, prods]) => ({
       title,
-      products
+      products: prods
     }));
-  }, [allMedicines, selectedBrand]);
+  }, [products]);
 
   const toggleProduct = (id: string) => {
     if (expandedProductId === id) {
       setExpandedProductId(null);
     } else {
       setExpandedProductId(id);
-      setSelectedVariantIndex(0); // Reset to first variant when expanding
+      setSelectedVariantIndex(0);
     }
   };
 
@@ -135,6 +188,7 @@ export default function Products() {
       const selectedVariant = product.prices[selectedVariantIndex] || product.prices[0];
       addToCart({
         id: `${product.id}-${selectedVariant.unit}`,
+        inventoryId: product.id,
         name: `${product.name} (${selectedVariant.unit})`,
         price: selectedVariant.price
       }, qty);
@@ -150,11 +204,128 @@ export default function Products() {
     } else {
       setSearchParams({});
     }
-    setIsCategoryDrawerOpen(false);
     setExpandedProductId(null);
   };
 
-  if (loading) {
+  const handleCategorySelect = (catName: string) => {
+    setSearchParams({ brand: selectedBrand!, category: catName });
+  };
+
+  const goBackToBrands = () => {
+    setSearchParams({});
+  };
+
+  const goBackToCategories = () => {
+    setSearchParams({ brand: selectedBrand! });
+  };
+
+  // ─── STAGE 1: Brand Grid ───
+  if (!selectedBrand) {
+    return (
+      <div className="bg-[#f8f9fa] min-h-screen pb-20 font-ChivoMono">
+        <div className="bg-white px-4 py-4 sticky top-16 z-40">
+          <div
+            onClick={() => navigate('/search')}
+            className="relative max-w-2xl mx-auto cursor-text"
+          >
+            <div className="w-full bg-[#f8f9fa] border border-gray-200 rounded-full py-3 px-6 pr-12 text-sm text-gray-400">
+              ဆေးဝါးနှင့်ကျန်းမာရေးပစ္စည်းများ ရှာဖွေရန်
+            </div>
+            <Search className="absolute right-5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+          </div>
+        </div>
+
+        <div className="px-4 py-6 max-w-2xl mx-auto">
+          <div className="flex items-start justify-between mb-6">
+            <h1 className="text-[14px] md:text-2xl font-bold text-primary">
+              ဆေးအမှတ်တံဆိပ်များ
+            </h1>
+          </div>
+
+          <div className="grid grid-cols-3 md:grid-cols-5 gap-3">
+            {brands.map((brand, index) => (
+              <button
+                key={brand}
+                onClick={() => handleBrandSelect(brand)}
+                className="px-5 h-16 md:h-16 rounded-xl bg-white border border-gray-100 shadow-sm text-primary-dark font-semibold text-[13px] md:text-[18px] hover:bg-blue-50 hover:border-blue-200 hover:scale-105 transition-all text-center min-w-[100px] md:min-w-[160px] animate-in fade-in slide-in-from-bottom duration-500 font-ChivoMono"
+                style={{ animationDelay: `${index * 50}ms` }}
+              >
+                {brand}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── STAGE 2: Category Grid ───
+  if (selectedBrand && !selectedCategory) {
+    return (
+      <div className="bg-[#f8f9fa] min-h-screen pb-20 font-ChivoMono">
+        <div className="bg-white px-4 py-4 sticky top-16 z-40">
+          <div
+            onClick={() => navigate('/search')}
+            className="relative max-w-2xl mx-auto cursor-text"
+          >
+            <div className="w-full bg-[#f8f9fa] border border-gray-200 rounded-full py-3 px-6 pr-12 text-sm text-gray-400">
+              ဆေးဝါးနှင့်ကျန်းမာရေးပစ္စည်းများ ရှာဖွေရန်
+            </div>
+            <Search className="absolute right-5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+          </div>
+        </div>
+
+        <div className="px-4 py-6 max-w-2xl mx-auto">
+          <div className="flex items-start justify-between mb-2">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={goBackToBrands}
+                  className="p-1.5 hover:bg-gray-100 rounded-full transition-colors"
+                >
+                  <ArrowLeft className="w-5 h-5 text-gray-600" />
+                </button>
+                <h1 className="text-[14px] md:text-2xl font-bold text-primary">
+                  {selectedBrand}
+                </h1>
+                <button
+                  onClick={goBackToBrands}
+                  className="border border-primary text-primary px-3 py-1 rounded-full text-[8px] md:text-[12px] font-bold hover:bg-blue-50 transition-colors"
+                >
+                  ပြောင်းမယ်
+                </button>
+              </div>
+              <p className="text-gray-500 text-[10px] ml-10">
+                အမျိုးအစား <span className="font-bold text-gray-800">{categories.length}</span> မျိုး
+              </p>
+            </div>
+          </div>
+
+          {catLoading ? (
+            <div className="flex items-center justify-center py-20">
+              <div className="text-primary font-bold animate-pulse">အမျိုးအစားများ ရှာဖွေနေပါသည်...</div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-6">
+              {categories.map((cat, index) => (
+                <button
+                  key={cat}
+                  onClick={() => handleCategorySelect(cat)}
+                  className="px-5 h-20 md:h-24 rounded-xl bg-white border border-gray-100 shadow-sm text-primary-dark font-semibold text-[13px] md:text-[16px] hover:bg-blue-50 hover:border-blue-200 hover:scale-105 transition-all text-center min-w-[120px] animate-in fade-in slide-in-from-bottom duration-500 font-ChivoMono"
+                  style={{ animationDelay: `${index * 50}ms` }}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // ─── STAGE 3: Product List ───
+  if (prodLoading) {
     return (
       <div className="bg-[#f8f9fa] min-h-screen flex items-center justify-center">
         <div className="text-primary font-bold animate-pulse">ဆေးဝါးများ ရှာဖွေနေပါသည်...</div>
@@ -162,13 +333,22 @@ export default function Products() {
     );
   }
 
-  // Calculate stats
+  if (products.length === 0) {
+    return (
+      <div className="bg-[#f8f9fa] min-h-screen flex flex-col items-center justify-center pb-20 font-ChivoMono">
+        <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
+          <ShoppingCart className="w-10 h-10 text-gray-200" />
+        </div>
+        <p className="text-gray-400 font-medium text-sm">ဆေးဝါးများ မရှိသေးပါ</p>
+      </div>
+    );
+  }
+
   const totalCategories = productData.length;
   const totalProducts = productData.reduce((sum, cat) => sum + cat.products.length, 0);
 
   return (
     <div className="bg-[#f8f9fa] min-h-screen pb-20 font-ChivoMono">
-      {/* Search Bar section */}
       <div className="bg-white px-4 py-4 sticky top-16 z-40">
         <div
           onClick={() => navigate('/search')}
@@ -182,35 +362,39 @@ export default function Products() {
       </div>
 
       <div className="px-4 py-6 space-y-8 max-w-2xl mx-auto">
-        {/* Page Header */}
         <div className="flex items-start justify-between">
           <div className="space-y-1">
-            <button
-              onClick={() => setIsCategoryDrawerOpen(true)}
-              className="flex items-center gap-2 group transition-all"
-            >
-              <h1 className=" md:text-2xl text-[14px] font-bold text-primary group-hover:text-blue-600 transition-colors">
-                {selectedBrand || 'ဆေးအမှတ်တံဆိပ်များ'}
-              </h1>
-              <ChevronDown className="w-6 h-6 text-blue-600 group-hover:scale-110 transition-transform" />
-            </button>
             <div className="flex items-center gap-2">
+              <button
+                onClick={goBackToCategories}
+                className="p-1.5 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <ArrowLeft className="w-5 h-5 text-gray-600" />
+              </button>
+              <div className="flex items-center gap-2 text-[14px] md:text-2xl">
+                <button
+                  onClick={goBackToBrands}
+                  className="font-bold text-primary hover:text-blue-600 transition-colors"
+                >
+                  {selectedBrand}
+                </button>
+                <span className="text-gray-300 font-light">/</span>
+                <button
+                  onClick={goBackToCategories}
+                  className="font-bold text-primary hover:text-blue-600 transition-colors"
+                >
+                  {selectedCategory}
+                </button>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 ml-10">
               <p className="text-gray-500 text-[10px]">
                 အမျိုးအစား <span className="font-bold text-gray-800">{totalCategories}</span> မျိုး / ဆေးဝါး <span className="font-bold text-gray-800">{totalProducts}</span> မျိုး
               </p>
-              {selectedBrand && (
-                <button
-                  onClick={() => handleBrandSelect(null)}
-                  className="text-red-500 text-[10px] font-bold hover:underline flex items-center gap-0.5"
-                >
-                  <XCircle className="w-3 h-3" /> အကုန်ပြမယ်
-                </button>
-              )}
             </div>
           </div>
         </div>
 
-        {/* Product Sections */}
         {productData.map((category, catIdx) => (
           <div key={catIdx} className="space-y-4">
             <h2 className="text-blue-600 font-bold text-base px-1">
@@ -225,10 +409,10 @@ export default function Products() {
                   >
                     <div className="p-3 pr-4 flex items-center justify-between">
                       <div className="flex items-center gap-4">
-                        <span
-                          onClick={() => navigate(`/product/${product.id}`)}
-                          className="text-[#1a1a1a] font-bold text-[14px] md:text-[14px] cursor-pointer hover:text-blue-600 transition-colors inline-flex items-center gap-2"
-                        >
+                          <span
+                            onClick={() => navigate(`/product/${product.id}`, { state: { product } })}
+                            className="text-[#1a1a1a] font-bold text-[14px] md:text-[14px] cursor-pointer hover:text-blue-600 transition-colors inline-flex items-center gap-2"
+                          >
                           {product.name}
                           {getProductCartQty(product.id) > 0 && (
                             <span className="bg-green-100 text-green-600 text-[10px] px-1.5 py-0.5 rounded-full flex items-center gap-1">
@@ -265,7 +449,6 @@ export default function Products() {
                               <span className={`font-bold text-[12px] md:text-[14px] ${selectedVariantIndex === pIdx ? 'text-blue-600' : 'text-gray-700'}`}>
                                 {price.quantity}
                               </span>
-                              {/* <span className="text-[10px] text-gray-400">{price.quantity}</span> */}
                             </div>
                             <div className="flex-1 border-b border-dotted border-gray-300 mx-4 h-0 mt-1" />
                             <div className="flex items-baseline gap-1">
@@ -321,56 +504,6 @@ export default function Products() {
           </div>
         ))}
       </div>
-
-      {/* Category Selection Drawer */}
-      {isCategoryDrawerOpen && (
-        <>
-          {/* Backdrop */}
-          <div
-            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 transition-opacity"
-            onClick={() => setIsCategoryDrawerOpen(false)}
-          />
-
-          {/* Drawer Content */}
-          <div className="fixed bottom-0 left-0 right-0 bg-white rounded-t-[40px] z-50 p-6 pt-8 animate-in slide-in-from-bottom duration-300">
-            <div className="max-w-2xl mx-auto space-y-6">
-              <div className="flex items-center justify-between">
-                <h2 className="md:text-2xl text-[14px] font-bold text-primary">ဆေးအမှတ်တံဆိပ်များ</h2>
-                <button
-                  onClick={() => setIsCategoryDrawerOpen(false)}
-                  className="flex items-center gap-1 border border-primary text-primary px-3 py-1.5 rounded-full text-[8px] font-bold bg-white hover:bg-blue-50 transition-colors"
-                >
-                  ပိတ်မယ် <XCircle className="w-4 h-4" />
-                </button>
-              </div>
-
-              <div className="space-y-1 h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
-                <button
-                  className={`w-full flex items-center justify-between py-4 border-b border-dashed border-gray-200 hover:bg-gray-50 px-2 rounded-lg transition-colors group text-left ${!selectedBrand ? 'bg-blue-50' : ''}`}
-                  onClick={() => handleBrandSelect(null)}
-                >
-                  <span className="font-bold text-[12px]">အကုန်ပြမယ်</span>
-                  <span className="text-gray-500 font-medium text-[12px]">
-                    ဆေးဝါး <span className="font-bold text-gray-800">{allMedicines.length}</span> မျိုး
-                  </span>
-                </button>
-                {drawerCategories.map((item, index) => (
-                  <button
-                    key={index}
-                    className={`w-full flex items-center justify-between py-4 border-b border-dashed border-gray-200 last:border-0 hover:bg-gray-50 px-2 rounded-lg transition-colors group text-left ${selectedBrand === item.title ? 'bg-blue-50' : ''}`}
-                    onClick={() => handleBrandSelect(item.title)}
-                  >
-                    <span className="font-bold text-[12px]">{item.title}</span>
-                    <span className="text-gray-500 font-medium text-[12px]">
-                      ဆေးဝါး <span className="font-bold text-gray-800">{item.count}</span> မျိုး
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        </>
-      )}
     </div>
   );
 }

@@ -1,43 +1,58 @@
 import { ArrowLeft, Minus, Plus, ShoppingCart, Info, Package, Tag } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import paracetamolImg from '../assets/images/products/paracetamol.png';
 
-interface Variant {
+interface PriceTier {
   unit: string;
-  Qty: number;
-  Unit: string;
-  SP1: number;
+  quantity: string;
+  price: number;
 }
 
-interface Product {
+interface ProductDetailData {
   id: string;
-  Description: string;
+  name: string;
   brand: string;
   category: string;
-  Code: string;
-  variants: Variant[];
-  limit: boolean;
+  code: string;
+  prices: PriceTier[];
 }
 
 export default function ProductDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const { addToCart, setQuantity: cartSetQuantity, cartItems } = useCart();
-  const [product, setProduct] = useState<Product | null>(null);
+
+  const [product, setProduct] = useState<ProductDetailData | null>(
+    location.state?.product || null
+  );
   const [selectedVariantIndex, setSelectedVariantIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!product);
 
   useEffect(() => {
+    if (product) return;
+
     const fetchProduct = async () => {
       try {
         const response = await fetch('/medicines.json');
         const data = await response.json();
         const found = data.find((item: any) => item.id === id);
         if (found) {
-          setProduct(found);
+          setProduct({
+            id: found.id,
+            name: found.Description,
+            brand: found.brand,
+            category: found.category || 'အထွေထွေ',
+            code: found.Code,
+            prices: found.variants.map((v: any) => ({
+              unit: v.unit,
+              quantity: v.unit,
+              price: v.SP1 || v.nan1 || 0
+            }))
+          });
         }
       } catch (error) {
         console.error('Error fetching product:', error);
@@ -47,12 +62,11 @@ export default function ProductDetail() {
     };
 
     fetchProduct();
-  }, [id]);
+  }, [id, product]);
 
-  // Sync quantity with cart when variant changes
   useEffect(() => {
     if (product) {
-      const variant = product.variants[selectedVariantIndex];
+      const variant = product.prices[selectedVariantIndex];
       const cartQty = getVariantCartQty(variant.unit);
       if (cartQty > 0) {
         setQuantity(cartQty);
@@ -70,19 +84,18 @@ export default function ProductDetail() {
 
   const handleAddToCart = () => {
     if (product && quantity > 0) {
-      const variant = product.variants[selectedVariantIndex];
+      const variant = product.prices[selectedVariantIndex];
       const variantId = `${product.id}-${variant.unit}`;
       const isAlreadyInCart = getVariantCartQty(variant.unit) > 0;
 
       if (isAlreadyInCart) {
-        // Update existing quantity
         cartSetQuantity(variantId, quantity);
       } else {
-        // Add new item
         addToCart({
           id: variantId,
-          name: `${product.Description} (${variant.unit})`,
-          price: variant.SP1
+          inventoryId: product.id,
+          name: `${product.name} (${variant.unit})`,
+          price: variant.price
         }, quantity);
       }
 
@@ -107,11 +120,10 @@ export default function ProductDetail() {
     );
   }
 
-  const selectedVariant = product.variants[selectedVariantIndex];
+  const selectedVariant = product.prices[selectedVariantIndex];
 
   return (
     <div className="bg-[#f8f9fa] min-h-screen pb-24 font-ChivoMono">
-      {/* Header */}
       <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-md px-4 py-4 flex items-center gap-4 border-b border-gray-100">
         <button
           onClick={() => navigate(-1)}
@@ -120,35 +132,28 @@ export default function ProductDetail() {
           <ArrowLeft className="w-6 h-6 text-gray-800" />
         </button>
         <h1 className="text-sm font-bold text-gray-800 truncate">
-          {product.Description}
+          {product.name}
         </h1>
       </div>
 
       <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
-        {/* Product Image */}
         <div className="relative aspect-square rounded-[10px] overflow-hidden bg-white border border-gray-100 shadow-sm flex items-center justify-center">
           <img
             src={paracetamolImg}
-            alt={product.Description}
+            alt={product.name}
             className="w-full h-full object-contain opacity-90 transition-transform active:scale-110 duration-500"
           />
         </div>
 
-        {/* Product Card */}
         <div className="bg-white rounded-[32px] p-6 shadow-sm border border-gray-50 space-y-6">
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <span className="bg-blue-50 text-blue-600 text-[10px] font-bold px-2 py-1 rounded">
-                {product.Code}
+                {product.code}
               </span>
-              {product.limit && (
-                <span className="bg-yellow-50 text-yellow-600 text-[10px] font-bold px-2 py-1 rounded">
-                  Limited
-                </span>
-              )}
             </div>
             <h2 className="text-xl font-bold text-gray-900 leading-tight">
-              {product.Description}
+              {product.name}
             </h2>
           </div>
 
@@ -170,13 +175,12 @@ export default function ProductDetail() {
           </div>
         </div>
 
-        {/* Pricing Options */}
         <div className="space-y-4 pb-10">
           <h3 className="text-primary font-bold text-sm px-1 flex items-center gap-2">
             <Info className="w-4 h-4" /> ဝယ်ယူမည့်အမျိုးအစား ရွေးချယ်ပါ
           </h3>
           <div className="grid gap-3">
-            {product.variants.map((v, index) => (
+            {product.prices.map((p, index) => (
               <button
                 key={index}
                 onClick={() => setSelectedVariantIndex(index)}
@@ -188,19 +192,18 @@ export default function ProductDetail() {
                 <div className="flex flex-col items-start gap-1">
                   <div className="flex items-center gap-2">
                     <span className={`text-[15px] font-bold ${selectedVariantIndex === index ? 'text-primary' : 'text-gray-700'}`}>
-                      {v.unit}
+                      {p.unit}
                     </span>
-                    {getVariantCartQty(v.unit) > 0 && (
+                    {getVariantCartQty(p.unit) > 0 && (
                       <span className="bg-green-100 text-green-600 text-[9px] font-bold px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
-                        <ShoppingCart className="w-2.5 h-2.5" /> {getVariantCartQty(v.unit)}
+                        <ShoppingCart className="w-2.5 h-2.5" /> {getVariantCartQty(p.unit)}
                       </span>
                     )}
                   </div>
-                  {/* <span className="text-[11px] text-gray-400 font-medium">အရည်အတွက် - {v.Qty} {v.Unit}</span> */}
                 </div>
                 <div className="flex items-baseline gap-1">
                   <span className={`text-lg font-bold ${selectedVariantIndex === index ? 'text-primary' : 'text-gray-900 font-mono'}`}>
-                    {v.SP1?.toLocaleString()}
+                    {p.price?.toLocaleString()}
                   </span>
                   <span className={`text-[10px] font-bold ${selectedVariantIndex === index ? 'text-primary' : 'text-gray-500'}`}>MMK</span>
                 </div>
@@ -210,10 +213,8 @@ export default function ProductDetail() {
         </div>
       </div>
 
-      {/* Bottom Sticky Bar */}
       <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-gray-100 px-4 pt-3 pb-6 z-50 shadow-[0_-10px_40px_rgba(0,0,0,0.04)]">
         <div className="max-w-2xl mx-auto space-y-4">
-          {/* Total Price Display */}
           <div className="flex items-center justify-between px-2">
             <div className="flex flex-col">
               <span className="text-gray-500 text-[11px] font-bold uppercase tracking-widest">ကျသင့်ငွေ စုစုပေါင်း</span>
@@ -223,7 +224,7 @@ export default function ProductDetail() {
             </div>
             <div className="flex items-baseline gap-1">
               <span className="text-2xl font-bold text-primary">
-                {(quantity * selectedVariant.SP1).toLocaleString()}
+                {(quantity * selectedVariant.price).toLocaleString()}
               </span>
               <span className="text-[12px] font-bold text-primary">MMK</span>
             </div>
@@ -251,7 +252,7 @@ export default function ProductDetail() {
               onClick={handleAddToCart}
               className="flex-1 bg-primary text-white py-3 rounded-2xl font-bold text-[15px] tracking-wide active:scale-95 transition-all shadow-lg shadow-blue-100 border-b-4 border-blue-700"
             >
-              {product && getVariantCartQty(product.variants[selectedVariantIndex].unit) > 0 ? 'ဆေးယူမယ်' : 'ဆေးယူမယ်'}
+              ဆေးယူမယ်
             </button>
           </div>
         </div>

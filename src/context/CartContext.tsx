@@ -1,7 +1,8 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 export interface CartItem {
   id: string;
+  inventoryId: string;
   name: string;
   price: number;
   quantity: number;
@@ -9,7 +10,7 @@ export interface CartItem {
 
 interface CartContextType {
   cartItems: CartItem[];
-  addToCart: (product: { id: string; name: string; price: number }, quantity: number) => void;
+  addToCart: (product: { id: string; inventoryId: string; name: string; price: number }, quantity: number) => void;
   removeFromCart: (id: string) => void;
   updateQuantity: (id: string, delta: number) => void;
   setQuantity: (id: string, quantity: number) => void;
@@ -21,10 +22,23 @@ interface CartContextType {
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
-export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+const CART_STORAGE_KEY = 'cart_items';
 
-  const addToCart = (product: { id: string; name: string; price: number }, quantity: number) => {
+export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const [cartItems, setCartItems] = useState<CartItem[]>(() => {
+    try {
+      const stored = localStorage.getItem(CART_STORAGE_KEY);
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartItems));
+  }, [cartItems]);
+
+  const addToCart = (product: { id: string; inventoryId: string; name: string; price: number }, quantity: number) => {
     if (quantity <= 0) return;
     
     setCartItems(prev => {
@@ -56,6 +70,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const clearCart = () => {
     setCartItems([]);
+    localStorage.removeItem(CART_STORAGE_KEY);
   };
 
   const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
