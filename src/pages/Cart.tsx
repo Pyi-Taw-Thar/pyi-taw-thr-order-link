@@ -1,4 +1,4 @@
-import { ShoppingCart, Trash2, Plus, Minus, CheckCircle } from 'lucide-react';
+import { ShoppingCart, Trash2, Plus, Minus, CheckCircle, XCircle } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
@@ -134,10 +134,6 @@ export default function Cart() {
                 </div>
               </div>
 
-              {orderError && (
-                <p className="text-red-500 text-sm font-medium text-center">{orderError}</p>
-              )}
-
               <div className="space-y-3 pt-2">
                 <button
                   onClick={handleOrder}
@@ -200,6 +196,35 @@ export default function Cart() {
               className="w-full bg-primary text-white py-3 md:py-4 rounded-2xl font-bold text-[14px] md:text-lg shadow-lg active:scale-95 transition-all"
             >
               ဆက်လက်ဝယ်ယူမယ်
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Error Modal */}
+      {orderError && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 overflow-hidden">
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300"
+            onClick={() => setOrderError('')}
+          />
+          <div className="relative bg-white rounded-[40px] w-full max-w-sm p-8 text-center space-y-6 shadow-2xl animate-in zoom-in slide-in-from-bottom-10 duration-500">
+            <div className="w-20 h-20 md:w-24 md:h-24 bg-red-50 rounded-full flex items-center justify-center mx-auto">
+              <XCircle className="w-12 h-12 md:w-16 md:h-16 text-red-500 animate-in zoom-in duration-700 delay-200" />
+            </div>
+
+            <div className="space-y-2">
+              <h2 className="text-xl md:text-3xl font-bold text-[#1a1a1a]">မအောင်မြင်ပါ</h2>
+              <p className="text-[12px] md:text-base text-red-500 font-medium">
+                {orderError}
+              </p>
+            </div>
+
+            <button
+              onClick={() => setOrderError('')}
+              className="w-full bg-primary text-white py-3 md:py-4 rounded-2xl font-bold text-[14px] md:text-lg shadow-lg active:scale-95 transition-all"
+            >
+              ပြန်ကြိုးစားမည်
             </button>
           </div>
         </div>
