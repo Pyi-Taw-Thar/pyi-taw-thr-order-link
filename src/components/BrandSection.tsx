@@ -35,17 +35,19 @@ export default function BrandSection() {
   if (loading) return null;
 
   return (
-    <section className="py-8 px-0 md:px-40 md:py-10">
+    <section className="container mx-auto py-8 md:py-20">
       <div className="px-4 space-y-6 md:space-y-10">
         <h2 className="text-primary-dark text-[20px] md:text-2xl font-semibold">
           နာမည်ကြီး ဆေးအမှတ်တံဆိပ်များ
         </h2>
 
-        <div className="grid grid-cols-3 md:grid-cols-5 gap-3">
+        <div className="grid grid-cols-3 lg:grid-cols-4 gap-3">
           {brands.map((brand, index) => (
             <button
               key={brand.id}
-              onClick={() => navigate(`/products?brand=${encodeURIComponent(brand.title)}`)}
+              onClick={() =>
+                navigate(`/products?brand=${encodeURIComponent(brand.title)}`)
+              }
               className="px-5 h-16 md:h-16 rounded-xl bg-white border border-gray-100 shadow-sm text-primary-dark font-semibold text-[13px] md:text-[18px] hover:bg-blue-50 hover:border-blue-200 hover:scale-105 transition-all text-center min-w-[100px] md:min-w-[160px] animate-in fade-in slide-in-from-bottom duration-500 font-ChivoMono"
               style={{ animationDelay: `${index * 50}ms` }}
             >

@@ -7,7 +7,7 @@ export default function HeroBanner() {
 
   return (
     <section className="bg-gradient-to-r from-primary-dark to-primary-light relative overflow-hidden">
-      <div className="container mx-auto py-8 md:py-20  ">
+      <div className="container mx-auto py-8 md:py-20">
         <div className="grid grid-cols-7 gap-2 items-center">
           <div className="text-white space-y-6 px-4 col-span-4">
             <h1 className="text-[16px] md:text-xl lg:text-4xl font-bold leading-[1.8] lg:leading-[1.5]">
