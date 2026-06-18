@@ -18,7 +18,8 @@ export default function Cart() {
     try {
       const products = cartItems.map(item => ({
         inventoryId: item.inventoryId,
-        quantity: item.quantity
+        quantity: item.quantity,
+        unit: item.unit,
       }));
 
       await api.post('/ecommerce/order', { products });

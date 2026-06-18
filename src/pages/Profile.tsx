@@ -1,7 +1,15 @@
-import { ArrowLeft, User, MapPin, Package, ChevronLeft, ChevronRight, Clock } from 'lucide-react';
-import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import api from '../services/axios';
+import {
+  ArrowLeft,
+  User,
+  MapPin,
+  Package,
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+} from "lucide-react";
+import { useState, useEffect } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import api from "../services/axios";
 
 interface Address {
   label: string;
@@ -49,15 +57,15 @@ interface Pagination {
 }
 
 const statusStyles: Record<string, string> = {
-  pending: 'bg-yellow-100 text-yellow-700',
-  confirmed: 'bg-green-100 text-green-700',
-  delivered: 'bg-blue-100 text-blue-700',
-  cancelled: 'bg-red-100 text-red-700',
+  pending: "bg-yellow-100 text-yellow-700",
+  confirmed: "bg-green-100 text-green-700",
+  delivered: "bg-blue-100 text-blue-700",
+  cancelled: "bg-red-100 text-red-700",
 };
 
 const paymentStatusStyles: Record<string, string> = {
-  unpaid: 'bg-yellow-50 text-yellow-600',
-  paid: 'bg-green-50 text-green-600',
+  unpaid: "bg-yellow-50 text-yellow-600",
+  paid: "bg-green-50 text-green-600",
 };
 
 export default function Profile() {
@@ -67,16 +75,18 @@ export default function Profile() {
   const [pagination, setPagination] = useState<Pagination | null>(null);
   const [loading, setLoading] = useState(true);
   const [ordersLoading, setOrdersLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [page, setPage] = useState(1);
 
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const response = await api.get('/customer/me');
+        const response = await api.get("/customer/me");
         setProfile(response.data.data);
       } catch (err: any) {
-        const msg = err?.response?.data?.message || 'ပရိုဖိုင်အချက်အလက်များ ရယူရန် ပြဿနာရှိနေပါသည်။';
+        const msg =
+          err?.response?.data?.message ||
+          "ပရိုဖိုင်အချက်အလက်များ ရယူရန် ပြဿနာရှိနေပါသည်။";
         setError(msg);
       } finally {
         setLoading(false);
@@ -89,13 +99,13 @@ export default function Profile() {
     const fetchOrders = async () => {
       setOrdersLoading(true);
       try {
-        const response = await api.get('/ecommerce/orders', {
-          params: { page, limit: 10 }
+        const response = await api.get("/ecommerce/orders", {
+          params: { page, limit: 10 },
         });
         setOrders(response.data.data);
         setPagination(response.data.pagination);
       } catch (err: any) {
-        console.error('Error fetching orders:', err);
+        console.error("Error fetching orders:", err);
       } finally {
         setOrdersLoading(false);
       }
@@ -105,28 +115,30 @@ export default function Profile() {
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     });
   };
 
   const formatDateTime = (dateStr: string) => {
     const date = new Date(dateStr);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
   if (loading) {
     return (
       <div className="bg-[#f8f9fa] min-h-screen flex items-center justify-center">
-        <div className="text-primary font-bold animate-pulse">ပရိုဖိုင်အချက်အလက်များ ရှာဖွေနေပါသည်...</div>
+        <div className="text-primary font-bold animate-pulse">
+          ပရိုဖိုင်အချက်အလက်များ ရှာဖွေနေပါသည်...
+        </div>
       </div>
     );
   }
@@ -134,8 +146,12 @@ export default function Profile() {
   if (error || !profile) {
     return (
       <div className="bg-[#f8f9fa] min-h-screen flex flex-col items-center justify-center space-y-4 px-4">
-        <p className="text-gray-500 text-sm text-center">{error || 'ပရိုဖိုင် ရှာမတွေ့ပါ။'}</p>
-        <button onClick={() => navigate(-1)} className="text-primary font-bold">နောက်သို့ပြန်သွားရန်</button>
+        <p className="text-gray-500 text-sm text-center">
+          {error || "ပရိုဖိုင် ရှာမတွေ့ပါ။"}
+        </p>
+        <button onClick={() => navigate(-1)} className="text-primary font-bold">
+          နောက်သို့ပြန်သွားရန်
+        </button>
       </div>
     );
   }
@@ -161,7 +177,9 @@ export default function Profile() {
               <User className="w-8 h-8 md:w-10 md:h-10 text-primary" />
             </div>
             <div className="space-y-1">
-              <h2 className="text-lg md:text-xl font-bold text-gray-900">{profile.name}</h2>
+              <h2 className="text-lg md:text-xl font-bold text-gray-900">
+                {profile.name}
+              </h2>
               <p className="text-gray-500 text-sm">{profile.phone}</p>
               <div className="flex items-center gap-1 text-gray-400 text-[11px]">
                 <Clock className="w-3 h-3" />
@@ -180,16 +198,23 @@ export default function Profile() {
             </h3>
             <div className="space-y-3">
               {profile.addresses.map((addr, index) => (
-                <div key={index} className="bg-gray-50 rounded-2xl p-4 border border-gray-100">
+                <div
+                  key={index}
+                  className="bg-gray-50 rounded-2xl p-4 border border-gray-100"
+                >
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="font-bold text-gray-800 text-sm">{addr.label}</span>
+                    <span className="font-bold text-gray-800 text-sm">
+                      {addr.label}
+                    </span>
                     {addr.isDefault && (
                       <span className="bg-primary/10 text-primary text-[9px] font-bold px-2 py-0.5 rounded-full">
                         Default
                       </span>
                     )}
                   </div>
-                  <p className="text-gray-500 text-[13px]">{addr.addressLine}, {addr.city}</p>
+                  <p className="text-gray-500 text-[13px]">
+                    {addr.addressLine}, {addr.city}
+                  </p>
                 </div>
               ))}
             </div>
@@ -205,15 +230,22 @@ export default function Profile() {
 
           {ordersLoading && orders.length === 0 ? (
             <div className="flex items-center justify-center py-10">
-              <div className="text-primary font-bold animate-pulse text-sm">မှာယူမှုများ ရှာဖွေနေပါသည်...</div>
+              <div className="text-primary font-bold animate-pulse text-sm">
+                မှာယူမှုများ ရှာဖွေနေပါသည်...
+              </div>
             </div>
           ) : orders.length === 0 ? (
             <div className="py-10 text-center space-y-3">
               <div className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center mx-auto">
                 <Package className="w-6 h-6 text-gray-300" />
               </div>
-              <p className="text-gray-400 text-sm">မှာယူမှုမှတ်တမ်း မရှိသေးပါ</p>
-              <Link to="/products" className="inline-block bg-primary text-white px-5 py-2 rounded-xl font-bold text-xs">
+              <p className="text-gray-400 text-sm">
+                မှာယူမှုမှတ်တမ်း မရှိသေးပါ
+              </p>
+              <Link
+                to="/products"
+                className="inline-block bg-primary text-white px-5 py-2 rounded-xl font-bold text-xs"
+              >
                 ဆေးဝါးများကြည့်မယ်
               </Link>
             </div>
@@ -221,41 +253,66 @@ export default function Profile() {
             <>
               <div className="space-y-3">
                 {orders.map((order) => (
-                  <div key={order._id} className="bg-gray-50 rounded-2xl p-4 border border-gray-100 space-y-3">
+                  <div
+                    key={order._id}
+                    className="bg-gray-50 rounded-2xl p-4 border border-gray-100 space-y-3"
+                  >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <span className="font-mono font-bold text-gray-800 text-[12px]">{order.orderNumber}</span>
+                        <span className="font-mono font-bold text-gray-800 text-[12px]">
+                          {order.orderNumber}
+                        </span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${statusStyles[order.status] || 'bg-gray-100 text-gray-600'}`}>
+                        <span
+                          className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${statusStyles[order.status] || "bg-gray-100 text-gray-600"}`}
+                        >
                           {order.status}
                         </span>
-                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${paymentStatusStyles[order.paymentStatus] || 'bg-gray-50 text-gray-500'}`}>
+                        <span
+                          className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${paymentStatusStyles[order.paymentStatus] || "bg-gray-50 text-gray-500"}`}
+                        >
                           {order.paymentStatus}
                         </span>
                       </div>
                     </div>
 
-                    <div className="text-[11px] text-gray-400">{formatDateTime(order.createdAt)}</div>
+                    <div className="text-[11px] text-gray-400">
+                      {formatDateTime(order.createdAt)}
+                    </div>
 
                     <div className="space-y-1.5">
                       {order.products.slice(0, 3).map((p) => (
-                        <div key={p._id} className="flex items-center justify-between text-[12px]">
+                        <div
+                          key={p._id}
+                          className="flex items-center justify-between text-[12px]"
+                        >
                           <span className="text-gray-700 truncate max-w-[180px] md:max-w-[300px]">
                             {p.productName}
-                            <span className="text-gray-400"> × {p.quantity}</span>
+                            <span className="text-gray-400">
+                              {" "}
+                              × {p.quantity} {p.unit}
+                            </span>
                           </span>
-                          <span className="font-bold text-gray-800 font-mono">{p.subtotal.toLocaleString()}</span>
+                          <span className="font-bold text-gray-800 font-mono">
+                            {p.subtotal.toLocaleString()}
+                          </span>
                         </div>
                       ))}
                       {order.products.length > 3 && (
-                        <p className="text-[10px] text-gray-400">+ {order.products.length - 3} items more</p>
+                        <p className="text-[10px] text-gray-400">
+                          + {order.products.length - 3} items more
+                        </p>
                       )}
                     </div>
 
                     <div className="border-t border-gray-200 pt-2 flex items-center justify-between">
-                      <span className="text-[12px] text-gray-500 font-bold">စုစုပေါင်း</span>
-                      <span className="text-primary font-bold text-[14px] font-mono">{order.totalAmount.toLocaleString()} MMK</span>
+                      <span className="text-[12px] text-gray-500 font-bold">
+                        စုစုပေါင်း
+                      </span>
+                      <span className="text-primary font-bold text-[14px] font-mono">
+                        {order.totalAmount.toLocaleString()} MMK
+                      </span>
                     </div>
 
                     {order.note && (
@@ -271,7 +328,7 @@ export default function Profile() {
               {pagination && pagination.totalPages > 1 && (
                 <div className="flex items-center justify-center gap-4 pt-2">
                   <button
-                    onClick={() => setPage(p => Math.max(1, p - 1))}
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
                     disabled={page === 1 || ordersLoading}
                     className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-gray-200 text-[12px] font-bold text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
                   >
@@ -281,7 +338,9 @@ export default function Profile() {
                     Page {pagination.currentPage} of {pagination.totalPages}
                   </span>
                   <button
-                    onClick={() => setPage(p => Math.min(pagination.totalPages, p + 1))}
+                    onClick={() =>
+                      setPage((p) => Math.min(pagination.totalPages, p + 1))
+                    }
                     disabled={page === pagination.totalPages || ordersLoading}
                     className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-gray-200 text-[12px] font-bold text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
                   >

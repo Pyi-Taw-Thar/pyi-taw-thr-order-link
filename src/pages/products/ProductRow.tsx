@@ -80,7 +80,10 @@ export default function ProductRow({
             {product.prices.map((price, pIdx) => (
               <div
                 key={pIdx}
-                onClick={() => onVariantSelect(pIdx)}
+                    onClick={() => {
+                      onVariantSelect(pIdx);
+                      onQuantityChange(String(price.quantity));
+                    }}
                 className={`flex items-center justify-between p-3 px-6 rounded-xl cursor-pointer transition-all border-2 ${
                   selectedVariantIndex === pIdx
                     ? "bg-white border-blue-500 shadow-sm"

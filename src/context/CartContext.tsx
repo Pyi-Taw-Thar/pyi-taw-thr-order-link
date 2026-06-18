@@ -6,11 +6,12 @@ export interface CartItem {
   name: string;
   price: number;
   quantity: number;
+  unit: string;
 }
 
 interface CartContextType {
   cartItems: CartItem[];
-  addToCart: (product: { id: string; inventoryId: string; name: string; price: number }, quantity: number) => void;
+  addToCart: (product: { id: string; inventoryId: string; name: string; price: number; unit: string }, quantity: number) => void;
   removeFromCart: (id: string) => void;
   updateQuantity: (id: string, delta: number) => void;
   setQuantity: (id: string, quantity: number) => void;
@@ -38,7 +39,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartItems));
   }, [cartItems]);
 
-  const addToCart = (product: { id: string; inventoryId: string; name: string; price: number }, quantity: number) => {
+  const addToCart = (product: { id: string; inventoryId: string; name: string; price: number; unit: string }, quantity: number) => {
     if (quantity <= 0) return;
     
     setCartItems(prev => {
@@ -48,7 +49,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           item.id === product.id ? { ...item, quantity: item.quantity + quantity } : item
         );
       }
-      return [...prev, { ...product, quantity }];
+      return [...prev, { ...product, quantity, unit: product.unit }];
     });
   };
 

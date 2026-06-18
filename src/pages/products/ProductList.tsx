@@ -82,6 +82,7 @@ export default function ProductList({
           inventoryId: product.id,
           name: `${product.name} (${selectedVariant.unit})`,
           price: selectedVariant.price,
+          unit: selectedVariant.unit,
         },
         qty,
       );
