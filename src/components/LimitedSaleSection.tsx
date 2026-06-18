@@ -32,10 +32,14 @@ export default function LimitedSaleSection() {
             name: p.productName,
             price: p.sellingPrice,
             brand: p.brand,
-            category: p.category || 'အထွေထွေ',
+            category: p.category || "အထွေထွေ",
             code: p.productCode,
             prices: [
-              { unit: p.unitOfMeasure, quantity: p.unitOfMeasure, price: p.sellingPrice },
+              {
+                unit: p.unitOfMeasure,
+                quantity: p.unitOfMeasure,
+                price: p.sellingPrice,
+              },
               ...(p.wholesalePrices || []).map((w: any) => ({
                 unit: w.unit,
                 quantity: w.unit,
@@ -57,8 +61,8 @@ export default function LimitedSaleSection() {
   if (loading || products.length === 0) return null;
 
   return (
-    <section className="bg-white font-ChivoMono">
-      <div className="container mx-auto py-8 md:py-20 space-y-6">
+    <section className="container mx-auto py-8 md:py-20 bg-white font-ChivoMono">
+      <div className="px-4 space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-primary-dark text-[20px] md:text-2xl font-semibold">

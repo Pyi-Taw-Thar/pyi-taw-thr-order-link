@@ -63,6 +63,7 @@ export default function Products() {
         const response = await api.get("/ecommerce/products", {
           params: { brand: selectedBrand, category: selectedCategory },
         });
+        console.log("response", response.data.data);
         setProducts(response.data.data);
       } catch (error) {
         console.error("Error fetching products:", error);
@@ -76,6 +77,7 @@ export default function Products() {
   const productData = useMemo(() => {
     const categoriesMap: Record<string, Product[]> = {};
     products.forEach((item) => {
+      console.log("item", item);
       const p = item.product;
       const cat = p.category || "အထွေထွေ";
       const product: Product = {
@@ -85,18 +87,31 @@ export default function Products() {
         category: cat,
         code: p.productCode,
         prices: [
-          { unit: p.unitOfMeasure, quantity: p.unitOfMeasure, price: p.sellingPrice },
-          ...p.wholesalePrices.map((w) => ({ unit: w.unit, quantity: w.unit, price: w.price })),
+          {
+            unit: p.unitOfMeasure,
+            quantity: 1,
+            price: p.sellingPrice,
+          },
+          ...p.wholesalePrices.map((w) => ({
+            unit: w.unit,
+            quantity: w.quantity,
+            price: w.price,
+          })),
         ],
       };
       if (!categoriesMap[cat]) categoriesMap[cat] = [];
       categoriesMap[cat].push(product);
     });
-    return Object.entries(categoriesMap).map(([title, prods]) => ({ title, products: prods }));
+    return Object.entries(categoriesMap).map(([title, prods]) => ({
+      title,
+      products: prods,
+    }));
   }, [products]);
 
-  const handleBrandSelect = (brandName: string) => setSearchParams({ brand: brandName });
-  const handleCategorySelect = (catName: string) => setSearchParams({ brand: selectedBrand!, category: catName });
+  const handleBrandSelect = (brandName: string) =>
+    setSearchParams({ brand: brandName });
+  const handleCategorySelect = (catName: string) =>
+    setSearchParams({ brand: selectedBrand!, category: catName });
   const goBackToBrands = () => setSearchParams({});
   const goBackToCategories = () => setSearchParams({ brand: selectedBrand! });
 
@@ -120,7 +135,9 @@ export default function Products() {
   if (prodLoading) {
     return (
       <div className="bg-[#f8f9fa] min-h-screen flex items-center justify-center">
-        <div className="text-primary font-bold animate-pulse">ဆေးဝါးများ ရှာဖွေနေပါသည်...</div>
+        <div className="text-primary font-bold animate-pulse">
+          ဆေးဝါးများ ရှာဖွေနေပါသည်...
+        </div>
       </div>
     );
   }
@@ -131,7 +148,9 @@ export default function Products() {
         <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
           <ShoppingCart className="w-10 h-10 text-gray-200" />
         </div>
-        <p className="text-gray-400 font-medium text-sm">ဆေးဝါးများ မရှိသေးပါ</p>
+        <p className="text-gray-400 font-medium text-sm">
+          ဆေးဝါးများ မရှိသေးပါ
+        </p>
       </div>
     );
   }

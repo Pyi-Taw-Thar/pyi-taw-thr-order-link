@@ -1,6 +1,6 @@
 export interface PriceTier {
   unit: string;
-  quantity: string;
+  quantity: number;
   price: number;
 }
 

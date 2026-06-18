@@ -95,7 +95,7 @@ export default function ProductRow({
                         : "text-gray-700"
                     }`}
                   >
-                    {price.quantity}
+                    {price.quantity} {price.unit}
                   </span>
                 </div>
                 <div className="flex-1 border-b border-dotted border-gray-300 mx-4 h-0 mt-1" />

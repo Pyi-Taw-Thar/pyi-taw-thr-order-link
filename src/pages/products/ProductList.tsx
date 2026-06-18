@@ -26,6 +26,7 @@ export default function ProductList({
   onBackToCategories,
   onBackToBrands,
 }: ProductListProps) {
+  console.log("productData", productData);
   const navigate = useNavigate();
   const { addToCart, cartItems } = useCart();
   const [expandedProductId, setExpandedProductId] = useState<string | null>(
