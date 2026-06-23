@@ -2,11 +2,12 @@ import { ArrowLeft, Minus, Plus, ShoppingCart, Info, Package, Tag } from 'lucide
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
+import { findBestTierIndex } from '../utils/pricing';
 import paracetamolImg from '../assets/images/products/paracetamol.png';
 
 interface PriceTier {
   unit: string;
-  quantity: string;
+  quantity: number;
   price: number;
 }
 
@@ -49,7 +50,7 @@ export default function ProductDetail() {
             code: found.Code,
             prices: found.variants.map((v: any) => ({
               unit: v.unit,
-              quantity: v.unit,
+              quantity: 1,
               price: v.SP1 || v.nan1 || 0
             }))
           });
@@ -76,6 +77,16 @@ export default function ProductDetail() {
     }
   }, [selectedVariantIndex, product]);
 
+  useEffect(() => {
+    if (!product) return;
+    const currentUnit = product.prices[selectedVariantIndex]?.unit;
+    if (!currentUnit || quantity <= 0) return;
+    const bestIndex = findBestTierIndex(product.prices, currentUnit, quantity);
+    if (bestIndex !== selectedVariantIndex) {
+      setSelectedVariantIndex(bestIndex);
+    }
+  }, [quantity, selectedVariantIndex, product]);
+
   const getVariantCartQty = (variantUnit: string) => {
     const variantId = `${id}-${variantUnit}`;
     const cartItem = cartItems.find(item => item.id === variantId);
@@ -95,7 +106,9 @@ export default function ProductDetail() {
           id: variantId,
           inventoryId: product.id,
           name: `${product.name} (${variant.unit})`,
-          price: variant.price
+          price: variant.price,
+          unit: variant.unit,
+          prices: product.prices
         }, quantity);
       }
 

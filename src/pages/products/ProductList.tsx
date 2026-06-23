@@ -1,10 +1,11 @@
 import { ArrowLeft } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
 import { Product } from "./types";
 import ProductRow from "./ProductRow";
 import SearchHeader from "../../components/SearchHeader";
+import { findBestTierIndex } from "../../utils/pricing";
 
 interface CategoryGroup {
   title: string;
@@ -34,6 +35,23 @@ export default function ProductList({
   );
   const [selectedVariantIndex, setSelectedVariantIndex] = useState(0);
   const [quantities, setQuantities] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    if (!expandedProductId) return;
+    let product: Product | undefined;
+    for (const group of productData) {
+      product = group.products.find((p) => p.id === expandedProductId);
+      if (product) break;
+    }
+    if (!product) return;
+    const qty = quantities[expandedProductId] || 0;
+    const currentUnit = product.prices[selectedVariantIndex]?.unit;
+    if (!currentUnit || qty <= 0) return;
+    const bestIndex = findBestTierIndex(product.prices, currentUnit, qty);
+    if (bestIndex !== selectedVariantIndex) {
+      setSelectedVariantIndex(bestIndex);
+    }
+  }, [expandedProductId, quantities, selectedVariantIndex, productData]);
 
   const totalCategories = productData.length;
   const totalProducts = productData.reduce(
@@ -83,6 +101,7 @@ export default function ProductList({
           name: `${product.name} (${selectedVariant.unit})`,
           price: selectedVariant.price,
           unit: selectedVariant.unit,
+          prices: product.prices,
         },
         qty,
       );

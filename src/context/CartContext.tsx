@@ -1,4 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { PriceTier } from '../pages/products/types';
+import { findBestTierIndex } from '../utils/pricing';
 
 export interface CartItem {
   id: string;
@@ -7,11 +9,12 @@ export interface CartItem {
   price: number;
   quantity: number;
   unit: string;
+  prices: PriceTier[];
 }
 
 interface CartContextType {
   cartItems: CartItem[];
-  addToCart: (product: { id: string; inventoryId: string; name: string; price: number; unit: string }, quantity: number) => void;
+  addToCart: (product: { id: string; inventoryId: string; name: string; price: number; unit: string; prices: PriceTier[] }, quantity: number) => void;
   removeFromCart: (id: string) => void;
   updateQuantity: (id: string, delta: number) => void;
   setQuantity: (id: string, quantity: number) => void;
@@ -39,7 +42,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartItems));
   }, [cartItems]);
 
-  const addToCart = (product: { id: string; inventoryId: string; name: string; price: number; unit: string }, quantity: number) => {
+  const addToCart = (product: { id: string; inventoryId: string; name: string; price: number; unit: string; prices: PriceTier[] }, quantity: number) => {
     if (quantity <= 0) return;
     
     setCartItems(prev => {
@@ -49,7 +52,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           item.id === product.id ? { ...item, quantity: item.quantity + quantity } : item
         );
       }
-      return [...prev, { ...product, quantity, unit: product.unit }];
+      return [...prev, { ...product, quantity, unit: product.unit, prices: product.prices }];
     });
   };
 
@@ -57,16 +60,26 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setCartItems(prev => prev.filter(item => item.id !== id));
   };
 
+  const recalcPrice = (prices: PriceTier[], unit: string, qty: number, fallbackPrice: number): number => {
+    if (!prices || prices.length === 0) return fallbackPrice;
+    const bestIndex = findBestTierIndex(prices, unit, qty);
+    return prices[bestIndex]?.price ?? prices[0].price;
+  };
+
   const updateQuantity = (id: string, delta: number) => {
-    setCartItems(prev => prev.map(item =>
-      item.id === id ? { ...item, quantity: Math.max(1, item.quantity + delta) } : item
-    ));
+    setCartItems(prev => prev.map(item => {
+      if (item.id !== id) return item;
+      const newQty = Math.max(1, item.quantity + delta);
+      return { ...item, quantity: newQty, price: recalcPrice(item.prices, item.unit, newQty, item.price) };
+    }));
   };
 
   const setQuantity = (id: string, quantity: number) => {
-    setCartItems(prev => prev.map(item =>
-      item.id === id ? { ...item, quantity: Math.max(1, quantity) } : item
-    ));
+    setCartItems(prev => prev.map(item => {
+      if (item.id !== id) return item;
+      const newQty = Math.max(1, quantity);
+      return { ...item, quantity: newQty, price: recalcPrice(item.prices, item.unit, newQty, item.price) };
+    }));
   };
 
   const clearCart = () => {
