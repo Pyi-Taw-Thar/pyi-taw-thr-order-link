@@ -11,6 +11,7 @@ export interface Product {
   brand?: string;
   category?: string;
   code?: string;
+  images?: string[];
 }
 
 export interface ApiProductItem {

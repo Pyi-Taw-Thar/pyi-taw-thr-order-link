@@ -64,6 +64,7 @@ export default function Products() {
           params: { brand: selectedBrand, category: selectedCategory },
         });
         console.log("response", response.data.data);
+
         setProducts(response.data.data);
       } catch (error) {
         console.error("Error fetching products:", error);
@@ -76,6 +77,7 @@ export default function Products() {
 
   const productData = useMemo(() => {
     const categoriesMap: Record<string, Product[]> = {};
+    // console.log("products", products);
     products.forEach((item) => {
       console.log("item", item);
       const p = item.product;
@@ -86,6 +88,7 @@ export default function Products() {
         brand: p.brand,
         category: cat,
         code: p.productCode,
+        images: p.images || [],
         prices: [
           {
             unit: p.unitOfMeasure,

@@ -1,9 +1,17 @@
-import { ArrowLeft, Minus, Plus, ShoppingCart, Info, Package, Tag } from 'lucide-react';
-import { useState, useEffect } from 'react';
-import { useNavigate, useParams, useLocation } from 'react-router-dom';
-import { useCart } from '../context/CartContext';
-import { findBestTierIndex } from '../utils/pricing';
-import paracetamolImg from '../assets/images/products/paracetamol.png';
+import {
+  ArrowLeft,
+  Minus,
+  Plus,
+  ShoppingCart,
+  Info,
+  Package,
+  Tag,
+} from "lucide-react";
+import { useState, useEffect } from "react";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
+import { useCart } from "../context/CartContext";
+import { findBestTierIndex } from "../utils/pricing";
+import paracetamolImg from "../assets/images/products/paracetamol.png";
 
 interface PriceTier {
   unit: string;
@@ -18,6 +26,7 @@ interface ProductDetailData {
   category: string;
   code: string;
   prices: PriceTier[];
+  images: { url: string }[];
 }
 
 export default function ProductDetail() {
@@ -27,43 +36,11 @@ export default function ProductDetail() {
   const { addToCart, setQuantity: cartSetQuantity, cartItems } = useCart();
 
   const [product, setProduct] = useState<ProductDetailData | null>(
-    location.state?.product || null
+    location.state?.product || null,
   );
   const [selectedVariantIndex, setSelectedVariantIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(!product);
-
-  useEffect(() => {
-    if (product) return;
-
-    const fetchProduct = async () => {
-      try {
-        const response = await fetch('/medicines.json');
-        const data = await response.json();
-        const found = data.find((item: any) => item.id === id);
-        if (found) {
-          setProduct({
-            id: found.id,
-            name: found.Description,
-            brand: found.brand,
-            category: found.category || 'အထွေထွေ',
-            code: found.Code,
-            prices: found.variants.map((v: any) => ({
-              unit: v.unit,
-              quantity: 1,
-              price: v.SP1 || v.nan1 || 0
-            }))
-          });
-        }
-      } catch (error) {
-        console.error('Error fetching product:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProduct();
-  }, [id, product]);
 
   useEffect(() => {
     if (product) {
@@ -76,6 +53,7 @@ export default function ProductDetail() {
       }
     }
   }, [selectedVariantIndex, product]);
+  console.log(product);
 
   useEffect(() => {
     if (!product) return;
@@ -89,7 +67,7 @@ export default function ProductDetail() {
 
   const getVariantCartQty = (variantUnit: string) => {
     const variantId = `${id}-${variantUnit}`;
-    const cartItem = cartItems.find(item => item.id === variantId);
+    const cartItem = cartItems.find((item) => item.id === variantId);
     return cartItem ? cartItem.quantity : 0;
   };
 
@@ -102,24 +80,29 @@ export default function ProductDetail() {
       if (isAlreadyInCart) {
         cartSetQuantity(variantId, quantity);
       } else {
-        addToCart({
-          id: variantId,
-          inventoryId: product.id,
-          name: `${product.name} (${variant.unit})`,
-          price: variant.price,
-          unit: variant.unit,
-          prices: product.prices
-        }, quantity);
+        addToCart(
+          {
+            id: variantId,
+            inventoryId: product.id,
+            name: `${product.name} (${variant.unit})`,
+            price: variant.price,
+            unit: variant.unit,
+            prices: product.prices,
+          },
+          quantity,
+        );
       }
 
-      navigate('/cart');
+      navigate("/cart");
     }
   };
 
   if (loading) {
     return (
       <div className="bg-white min-h-screen flex items-center justify-center">
-        <div className="text-primary font-bold animate-pulse">အချက်အလက်များ ရှာဖွေနေပါသည်...</div>
+        <div className="text-primary font-bold animate-pulse">
+          အချက်အလက်များ ရှာဖွေနေပါသည်...
+        </div>
       </div>
     );
   }
@@ -128,7 +111,9 @@ export default function ProductDetail() {
     return (
       <div className="bg-white min-h-screen flex flex-col items-center justify-center space-y-4">
         <p className="text-gray-500">ဆေးဝါး ရှာမတွေ့ပါ။</p>
-        <button onClick={() => navigate(-1)} className="text-primary font-bold">နောက်သို့ပြန်သွားရန်</button>
+        <button onClick={() => navigate(-1)} className="text-primary font-bold">
+          နောက်သို့ပြန်သွားရန်
+        </button>
       </div>
     );
   }
@@ -152,7 +137,7 @@ export default function ProductDetail() {
       <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
         <div className="relative aspect-square rounded-[10px] overflow-hidden bg-white border border-gray-100 shadow-sm flex items-center justify-center">
           <img
-            src={paracetamolImg}
+            src={product.images?.[0]?.url || paracetamolImg}
             alt={product.name}
             className="w-full h-full object-contain opacity-90 transition-transform active:scale-110 duration-500"
           />
@@ -174,16 +159,24 @@ export default function ProductDetail() {
             <div className="bg-gray-50 rounded-2xl p-4 space-y-1">
               <div className="flex items-center gap-1.5 text-gray-500">
                 <Tag className="w-3.5 h-3.5" />
-                <span className="text-[10px] font-bold uppercase tracking-wider">Brand</span>
+                <span className="text-[10px] font-bold uppercase tracking-wider">
+                  Brand
+                </span>
               </div>
-              <p className="font-bold text-[13px] text-gray-800 truncate">{product.brand}</p>
+              <p className="font-bold text-[13px] text-gray-800 truncate">
+                {product.brand}
+              </p>
             </div>
             <div className="bg-gray-50 rounded-2xl p-4 space-y-1">
               <div className="flex items-center gap-1.5 text-gray-500">
                 <Package className="w-3.5 h-3.5" />
-                <span className="text-[10px] font-bold uppercase tracking-wider">Category</span>
+                <span className="text-[10px] font-bold uppercase tracking-wider">
+                  Category
+                </span>
               </div>
-              <p className="font-bold text-[13px] text-gray-800 truncate">{product.category}</p>
+              <p className="font-bold text-[13px] text-gray-800 truncate">
+                {product.category}
+              </p>
             </div>
           </div>
         </div>
@@ -197,28 +190,38 @@ export default function ProductDetail() {
               <button
                 key={index}
                 onClick={() => setSelectedVariantIndex(index)}
-                className={`flex items-center justify-between p-5 rounded-2xl border-2 transition-all group ${selectedVariantIndex === index
-                  ? 'border-primary bg-white shadow-md'
-                  : 'border-transparent bg-white hover:border-gray-200'
-                  }`}
+                className={`flex items-center justify-between p-5 rounded-2xl border-2 transition-all group ${
+                  selectedVariantIndex === index
+                    ? "border-primary bg-white shadow-md"
+                    : "border-transparent bg-white hover:border-gray-200"
+                }`}
               >
                 <div className="flex flex-col items-start gap-1">
                   <div className="flex items-center gap-2">
-                    <span className={`text-[15px] font-bold ${selectedVariantIndex === index ? 'text-primary' : 'text-gray-700'}`}>
+                    <span
+                      className={`text-[15px] font-bold ${selectedVariantIndex === index ? "text-primary" : "text-gray-700"}`}
+                    >
                       {p.unit}
                     </span>
                     {getVariantCartQty(p.unit) > 0 && (
                       <span className="bg-green-100 text-green-600 text-[9px] font-bold px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
-                        <ShoppingCart className="w-2.5 h-2.5" /> {getVariantCartQty(p.unit)}
+                        <ShoppingCart className="w-2.5 h-2.5" />{" "}
+                        {getVariantCartQty(p.unit)}
                       </span>
                     )}
                   </div>
                 </div>
                 <div className="flex items-baseline gap-1">
-                  <span className={`text-lg font-bold ${selectedVariantIndex === index ? 'text-primary' : 'text-gray-900 font-mono'}`}>
+                  <span
+                    className={`text-lg font-bold ${selectedVariantIndex === index ? "text-primary" : "text-gray-900 font-mono"}`}
+                  >
                     {p.price?.toLocaleString()}
                   </span>
-                  <span className={`text-[10px] font-bold ${selectedVariantIndex === index ? 'text-primary' : 'text-gray-500'}`}>MMK</span>
+                  <span
+                    className={`text-[10px] font-bold ${selectedVariantIndex === index ? "text-primary" : "text-gray-500"}`}
+                  >
+                    MMK
+                  </span>
                 </div>
               </button>
             ))}
@@ -230,9 +233,14 @@ export default function ProductDetail() {
         <div className="max-w-2xl mx-auto space-y-4">
           <div className="flex items-center justify-between px-2">
             <div className="flex flex-col">
-              <span className="text-gray-500 text-[11px] font-bold uppercase tracking-widest">ကျသင့်ငွေ စုစုပေါင်း</span>
+              <span className="text-gray-500 text-[11px] font-bold uppercase tracking-widest">
+                ကျသင့်ငွေ စုစုပေါင်း
+              </span>
               {getVariantCartQty(selectedVariant.unit) > 0 && (
-                <span className="text-green-600 text-[9px] font-bold mt-0.5">စျေးခြင်းထဲတွင် - {getVariantCartQty(selectedVariant.unit)} ခုရှိနေသည်</span>
+                <span className="text-green-600 text-[9px] font-bold mt-0.5">
+                  စျေးခြင်းထဲတွင် - {getVariantCartQty(selectedVariant.unit)}{" "}
+                  ခုရှိနေသည်
+                </span>
               )}
             </div>
             <div className="flex items-baseline gap-1">

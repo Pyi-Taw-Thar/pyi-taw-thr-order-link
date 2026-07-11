@@ -1,12 +1,10 @@
-import { Menu, ShoppingCart, LogOut, User } from "lucide-react";
-
+import { Menu, ShoppingCart, LogOut, User, Home } from "lucide-react";
 
 import { useState } from "react";
 import { useCart } from "../context/CartContext";
 import { Link, useNavigate } from "react-router-dom";
 import LogoutModal from "./LogoutModal";
 import authService from "../services/auth.service";
-
 
 export default function Navbar() {
   const navigate = useNavigate();
@@ -19,7 +17,6 @@ export default function Navbar() {
     window.location.reload();
   };
 
-
   return (
     <nav className="bg-white border-b border-gray-100 sticky top-0 z-50 py-3">
       <div className="container mx-auto px-4">
@@ -28,7 +25,7 @@ export default function Navbar() {
             onClick={() => navigate("/")}
             className="bg-primary p-2.5 rounded-xl hover:bg-primary-dark transition-colors"
           >
-            <Menu className="w-5 h-5 md:w-6 md:h-6 text-white" />
+            <Home className="w-5 h-5 md:w-6 md:h-6 text-white" />
           </button>
 
           {/* <Link to="/" className="flex items-center">
@@ -42,17 +39,15 @@ export default function Navbar() {
           </Link> */}
 
           <div className="flex items-center space-x-2 md:space-x-4">
-            <button 
+            <button
               onClick={() => setIsLogoutModalOpen(true)}
               className="relative group focus:outline-none"
               title="Logout"
             >
-
               <div className="w-10 h-10 md:w-12 md:h-12 bg-white border border-gray-100 rounded-xl flex items-center justify-center hover:border-red-100 hover:bg-red-50 transition-all">
                 <LogOut className="w-5 h-5 md:w-6 md:h-6 text-gray-500 group-hover:text-red-500 transition-colors" />
               </div>
             </button>
-
 
             <Link to="/profile" className="relative group">
               <div className="w-10 h-10 md:w-12 md:h-12 bg-white border border-gray-100 rounded-xl flex items-center justify-center hover:border-blue-100 hover:bg-blue-50 transition-all">
@@ -71,7 +66,6 @@ export default function Navbar() {
               )}
             </Link>
           </div>
-
         </div>
 
         {isMenuOpen && (
@@ -115,13 +109,11 @@ export default function Navbar() {
                 <LogOut className="w-4 h-4 mr-2" />
                 Logout (ထွက်မယ်)
               </button>
-
-
             </div>
           </div>
         )}
       </div>
-      <LogoutModal 
+      <LogoutModal
         isOpen={isLogoutModalOpen}
         onClose={() => setIsLogoutModalOpen(false)}
         onConfirm={handleLogout}
@@ -129,4 +121,3 @@ export default function Navbar() {
     </nav>
   );
 }
-
