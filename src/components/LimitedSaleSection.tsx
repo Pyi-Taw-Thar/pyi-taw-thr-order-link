@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/axios";
 import ProductCard from "./ProductCard";
+import Skeleton from "./Skeleton";
 
 interface LimitedProduct {
   id: string;
@@ -58,7 +59,7 @@ export default function LimitedSaleSection() {
     fetchLimitedProducts();
   }, []);
 
-  if (loading || products.length === 0) return null;
+  if (products.length === 0 && !loading) return null;
 
   return (
     <section className="container mx-auto py-8 md:py-20 bg-white font-ChivoMono">
@@ -72,25 +73,40 @@ export default function LimitedSaleSection() {
               အရေအတွက် အကန့်အသန့်ဖြင့်သာ ဝယ်ယူလို့ရသောဆေးများ
             </p>
           </div>
-          <button
-            onClick={() => navigate("/limited-products")}
-            className="border-2 border-primary text-primary px-4 py-2 rounded-full font-semibold hover:bg-blue-50 transition-colors flex items-center gap-1 text-sm whitespace-nowrap"
-          >
-            ကြည့်မယ်
-          </button>
+          {!loading && (
+            <button
+              onClick={() => navigate("/limited-products")}
+              className="border-2 border-primary text-primary px-4 py-2 rounded-full font-semibold hover:bg-blue-50 transition-colors flex items-center gap-1 text-sm whitespace-nowrap"
+            >
+              ကြည့်မယ်
+            </button>
+          )}
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {products.map((product) => (
-            <ProductCard
-              key={product.id}
-              id={product.id}
-              name={product.name}
-              price={product.price}
-              data={product}
-              showBadge
-            />
-          ))}
+          {loading
+            ? Array.from({ length: 8 }).map((_, index) => (
+                <div
+                  key={index}
+                  className="bg-gray-50 rounded-lg px-3 py-6 md:px-6 md:py-8 flex flex-col justify-between space-y-4 border border-transparent"
+                >
+                  <div className="space-y-2">
+                    <Skeleton className="h-5 w-3/4 rounded" />
+                    <Skeleton className="h-4 w-1/2 rounded" />
+                  </div>
+                  <Skeleton className="h-10 w-full rounded-xl" />
+                </div>
+              ))
+            : products.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  id={product.id}
+                  name={product.name}
+                  price={product.price}
+                  data={product}
+                  showBadge
+                />
+              ))}
         </div>
       </div>
     </section>

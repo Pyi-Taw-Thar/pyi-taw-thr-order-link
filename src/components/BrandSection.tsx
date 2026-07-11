@@ -32,8 +32,6 @@ export default function BrandSection() {
     fetchBrands();
   }, []);
 
-  if (loading) return null;
-
   return (
     <section className="container mx-auto py-8 md:py-20">
       <div className="px-4 space-y-6 md:space-y-10">
