@@ -2,6 +2,7 @@ import { Search as SearchIcon, X, ArrowLeft, History, ShoppingCart, Plus, Minus,
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
+import api from '../services/axios';
 
 interface PriceTier {
   unit: string;
@@ -24,73 +25,73 @@ export default function Search() {
   const [expandedProductId, setExpandedProductId] = useState<string | null>(null);
   const [selectedVariantIndex, setSelectedVariantIndex] = useState<number>(0);
   const [quantities, setQuantities] = useState<Record<string, number>>({});
-  const [allMedicines, setAllMedicines] = useState<Product[]>([]);
   const [results, setResults] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
   const { addToCart, cartItems } = useCart();
 
   useEffect(() => {
     inputRef.current?.focus();
-    const fetchMedicines = async () => {
+  }, []);
+
+  // Debounced search when query changes
+  useEffect(() => {
+    if (!query.trim()) {
+      setResults([]);
+      return;
+    }
+
+    const delayDebounce = setTimeout(async () => {
+      setLoading(true);
       try {
-        const response = await fetch('/medicines.json');
-        const data = await response.json();
-        const medicines: Product[] = data.map((item: any) => ({
-          id: item.id,
-          name: item.Description,
-          brand: item.brand,
-          category: item.category || 'အထွေထွေ',
-          code: item.Code,
-          prices: item.variants.map((v: any) => ({
-            unit: v.unit,
-            quantity: `${v.Qty} ${v.Unit}`,
-            price: v.SP1 || v['nan.1'] || 0
-          }))
-        }));
-        setAllMedicines(medicines);
+        const response = await api.get('/ecommerce/products', {
+          params: { search: query }
+        });
+        const items = response.data.data || [];
+        const matches: Product[] = items.map((item: any) => {
+          const p = item.product;
+          return {
+            id: p._id,
+            name: p.productName,
+            brand: p.brand,
+            category: p.category || 'အထွေထွေ',
+            code: p.productCode,
+            prices: [
+              {
+                unit: p.unitOfMeasure,
+                quantity: `1 ${p.unitOfMeasure}`,
+                price: p.sellingPrice,
+              },
+              ...(p.wholesalePrices || []).map((w: any) => ({
+                unit: w.unit,
+                quantity: `${w.quantity} ${w.unit}`,
+                price: w.price,
+              })),
+            ]
+          };
+        });
+        setResults(matches);
       } catch (error) {
-        console.error('Error fetching medicines:', error);
+        console.error('Error fetching search results:', error);
       } finally {
         setLoading(false);
       }
-    };
-    fetchMedicines();
-  }, []);
+    }, 400);
 
-  // Show ephemeral suggestions while typing
-  const suggestions = query
-    ? allMedicines.filter(item =>
-      (item.name.toLowerCase().includes(query.toLowerCase()) ||
-        item.brand?.toLowerCase().includes(query.toLowerCase()) ||
-        item.code?.toLowerCase().includes(query.toLowerCase())) &&
-      !results.some(r => r.id === item.id)
-    )
-    : [];
+    return () => clearTimeout(delayDebounce);
+  }, [query]);
 
-  const handleSearch = (q: string) => {
-    if (!q) return;
+  const suggestions: Product[] = [];
+
+  const handleSearch = async (q: string) => {
+    if (!q.trim()) return;
     setQuery(q);
 
     // Update history
     if (!history.includes(q)) {
       setHistory(prev => [q, ...prev.slice(0, 4)]);
     }
-
-    // Find matches
-    const matches = allMedicines.filter(item =>
-      item.name.toLowerCase().includes(q.toLowerCase()) ||
-      item.brand?.toLowerCase().includes(q.toLowerCase()) ||
-      item.code?.toLowerCase().includes(q.toLowerCase())
-    );
-
-    // Merge with persistent results (keeping unique by ID)
-    setResults(prev => {
-      const existingIds = new Set(prev.map(p => p.id));
-      const newUniqueMatches = matches.filter(m => !existingIds.has(m.id));
-      return [...newUniqueMatches, ...prev]; // Newest found on top
-    });
   };
 
   const clearResults = () => setResults([]);
@@ -159,9 +160,8 @@ export default function Search() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSearch(query)}
-            placeholder={loading ? "ဆေးဝါးများ ရှာဖွေနေပါသည်..." : "ဆေးဝါးနှင့်ကျန်းမာရေးပစ္စည်းများ ရှာဖွေရန်"}
-            disabled={loading}
-            className="w-full bg-gray-50 border border-gray-200 rounded-full py-2.5 md:py-3 px-10 md:px-12 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:opacity-50"
+            placeholder="ဆေးဝါးနှင့်ကျန်းမာရေးပစ္စည်းများ ရှာဖွေရန်"
+            className="w-full bg-gray-50 border border-gray-200 rounded-full py-2.5 md:py-3 px-10 md:px-12 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
           />
           <SearchIcon className="absolute left-3.5 md:left-4 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 text-gray-400" />
           {query && (
@@ -245,7 +245,14 @@ export default function Search() {
             )}
 
             <div className="space-y-3">
-              {results.length > 0 ? (
+              {loading ? (
+                <div className="py-20 text-center space-y-4">
+                  <div className="animate-spin w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full mx-auto" />
+                  <p className="text-gray-400 font-medium">
+                    ဆေးဝါးများ ရှာဖွေနေပါသည်...
+                  </p>
+                </div>
+              ) : results.length > 0 ? (
                 results.map((product, idx) => (
                   <div key={product.id} className="space-y-4">
                     <div
