@@ -9,6 +9,7 @@ import ProductList from "./products/ProductList";
 
 export default function Products() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const selectedSubCategory = searchParams.get("subCategory") || null;
   const selectedBrand = searchParams.get("brand") || null;
   const selectedCategory = searchParams.get("category") || null;
 
@@ -22,14 +23,16 @@ export default function Products() {
     if (selectedBrand) return;
     const fetchBrands = async () => {
       try {
-        const response = await api.get("/ecommerce/products/brands");
+        const response = await api.get("/ecommerce/products/brands", {
+          params: { subCategory: selectedSubCategory }
+        });
         setBrands(response.data.data);
       } catch (error) {
         console.error("Error fetching brands:", error);
       }
     };
     fetchBrands();
-  }, [selectedBrand]);
+  }, [selectedBrand, selectedSubCategory]);
 
   useEffect(() => {
     if (!selectedBrand) {
@@ -111,12 +114,26 @@ export default function Products() {
     }));
   }, [products]);
 
-  const handleBrandSelect = (brandName: string) =>
-    setSearchParams({ brand: brandName });
-  const handleCategorySelect = (catName: string) =>
-    setSearchParams({ brand: selectedBrand!, category: catName });
-  const goBackToBrands = () => setSearchParams({});
-  const goBackToCategories = () => setSearchParams({ brand: selectedBrand! });
+  const handleBrandSelect = (brandName: string) => {
+    const params: Record<string, string> = { brand: brandName };
+    if (selectedSubCategory) params.subCategory = selectedSubCategory;
+    setSearchParams(params);
+  };
+  const handleCategorySelect = (catName: string) => {
+    const params: Record<string, string> = { brand: selectedBrand!, category: catName };
+    if (selectedSubCategory) params.subCategory = selectedSubCategory;
+    setSearchParams(params);
+  };
+  const goBackToBrands = () => {
+    const params: Record<string, string> = {};
+    if (selectedSubCategory) params.subCategory = selectedSubCategory;
+    setSearchParams(params);
+  };
+  const goBackToCategories = () => {
+    const params: Record<string, string> = { brand: selectedBrand! };
+    if (selectedSubCategory) params.subCategory = selectedSubCategory;
+    setSearchParams(params);
+  };
 
   if (!selectedBrand) {
     return <BrandGrid brands={brands} onSelect={handleBrandSelect} />;
