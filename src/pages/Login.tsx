@@ -1,5 +1,5 @@
 import { useState } from "react";
-import logo from "../assets/images/logo.png";
+import logo from "../assets/images/logo.jpg";
 import authService from "../services/auth.service";
 
 export default function Login() {
@@ -87,8 +87,7 @@ export default function Login() {
           <button
             onClick={handleLogin}
             disabled={!isValidPhone || loading}
-            className={`w-full py-6 md:py-4 rounded-full text-lg font-bold transition-all flex items-center justify-center gap-2 ${
-              isValidPhone && !loading
+            className={`w-full py-6 md:py-4 rounded-full text-lg font-bold transition-all flex items-center justify-center gap-2 ${isValidPhone && !loading
                 ? "bg-[#2563EB] text-white shadow-md active:scale-[0.98]"
                 : "bg-gray-200 text-gray-400"
               }`}
