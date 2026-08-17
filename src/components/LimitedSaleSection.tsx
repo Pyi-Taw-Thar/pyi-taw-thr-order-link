@@ -67,10 +67,10 @@ export default function LimitedSaleSection() {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-primary-dark text-[20px] md:text-2xl font-semibold">
-              အကန့်သတ်ရသောဆေးများ
+              အကန့်အသတ်ဖြင့်ရောင်းချသောဆေးများ
             </h2>
             <p className="text-gray-600 text-[10px] md:text-lg mt-1">
-              အရေအတွက် အကန့်အသန့်ဖြင့်သာ ဝယ်ယူလို့ရသောဆေးများ
+              အရေအတွက် အကန့်အသတ်ဖြင့်သာ ဝယ်ယူလို့ရသောဆေးများ
             </p>
           </div>
           {!loading && (
@@ -86,27 +86,27 @@ export default function LimitedSaleSection() {
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {loading
             ? Array.from({ length: 8 }).map((_, index) => (
-                <div
-                  key={index}
-                  className="bg-gray-50 rounded-lg px-3 py-6 md:px-6 md:py-8 flex flex-col justify-between space-y-4 border border-transparent"
-                >
-                  <div className="space-y-2">
-                    <Skeleton className="h-5 w-3/4 rounded" />
-                    <Skeleton className="h-4 w-1/2 rounded" />
-                  </div>
-                  <Skeleton className="h-10 w-full rounded-xl" />
+              <div
+                key={index}
+                className="bg-gray-50 rounded-lg px-3 py-6 md:px-6 md:py-8 flex flex-col justify-between space-y-4 border border-transparent"
+              >
+                <div className="space-y-2">
+                  <Skeleton className="h-5 w-3/4 rounded" />
+                  <Skeleton className="h-4 w-1/2 rounded" />
                 </div>
-              ))
+                <Skeleton className="h-10 w-full rounded-xl" />
+              </div>
+            ))
             : products.map((product) => (
-                <ProductCard
-                  key={product.id}
-                  id={product.id}
-                  name={product.name}
-                  price={product.price}
-                  data={product}
-                  showBadge
-                />
-              ))}
+              <ProductCard
+                key={product.id}
+                id={product.id}
+                name={product.name}
+                price={product.price}
+                data={product}
+                showBadge
+              />
+            ))}
         </div>
       </div>
     </section>
