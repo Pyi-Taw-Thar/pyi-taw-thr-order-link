@@ -12,9 +12,10 @@ interface LoginData {
 const HARDCODED_PASSWORD = 'password123';
 
 const authService = {
-  login: async (phone: string): Promise<void> => {
+  login: async (phone: string, name: string): Promise<void> => {
     const response = await api.post<{ success: boolean; data: LoginData }>('/customer/login', {
       phone,
+      name,
       password: HARDCODED_PASSWORD,
     });
     const { token, customer } = response.data.data;
