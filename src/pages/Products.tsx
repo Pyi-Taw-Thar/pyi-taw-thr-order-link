@@ -91,6 +91,7 @@ export default function Products() {
         brand: p.brand,
         category: cat,
         code: p.productCode,
+        chemicalNames: p.chemicalNames || [],
         images: p.images || [],
         prices: [
           {

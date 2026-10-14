@@ -25,6 +25,7 @@ interface ProductDetailData {
   brand: string;
   category: string;
   code: string;
+  chemicalNames?: string[];
   prices: PriceTier[];
   images: { url: string }[];
 }
@@ -179,6 +180,24 @@ export default function ProductDetail() {
               </p>
             </div>
           </div>
+
+          {product.chemicalNames && product.chemicalNames.length > 0 && (
+            <div className="bg-gray-50 rounded-2xl p-4 space-y-2">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500 block">
+                ဓာတုအမည်များ (Chemical Names)
+              </span>
+              <div className="flex flex-wrap gap-1.5">
+                {product.chemicalNames.map((chem, idx) => (
+                  <span
+                    key={`${chem}-${idx}`}
+                    className="bg-blue-50 text-blue-700 border border-blue-100 text-[11px] font-bold px-2.5 py-1 rounded-full"
+                  >
+                    {chem}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="space-y-4 pb-10">

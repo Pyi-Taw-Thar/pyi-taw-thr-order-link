@@ -11,6 +11,7 @@ interface LimitedProduct {
   brand: string;
   category: string;
   code: string;
+  chemicalNames?: string[];
   prices: { unit: string; quantity: string; price: number }[];
 }
 
@@ -36,6 +37,7 @@ export default function LimitedProducts() {
             brand: p.brand,
             category: p.category || 'အထွေထွေ',
             code: p.productCode,
+            chemicalNames: p.chemicalNames || [],
             prices: [
               { unit: p.unitOfMeasure, quantity: p.unitOfMeasure, price: p.sellingPrice },
               ...(p.wholesalePrices || []).map((w: any) => ({
@@ -59,7 +61,12 @@ export default function LimitedProducts() {
   const filtered = useMemo(() => {
     if (!query.trim()) return products;
     const q = query.toLowerCase();
-    return products.filter((p) => p.name.toLowerCase().includes(q));
+    return products.filter(
+      (p) =>
+        p.name.toLowerCase().includes(q) ||
+        (p.chemicalNames &&
+          p.chemicalNames.some((chem) => chem.toLowerCase().includes(q))),
+    );
   }, [products, query]);
 
   if (loading) {

@@ -17,6 +17,7 @@ interface Product {
   brand?: string;
   category?: string;
   code?: string;
+  chemicalNames?: string[];
 }
 
 export default function Search() {
@@ -57,6 +58,7 @@ export default function Search() {
             brand: p.brand,
             category: p.category || 'အထွေထွေ',
             code: p.productCode,
+            chemicalNames: p.chemicalNames || [],
             prices: [
               {
                 unit: p.unitOfMeasure,
@@ -261,17 +263,31 @@ export default function Search() {
                     >
                       <div className="p-3 pr-4 flex items-center justify-between">
                         <div className="flex items-center gap-4">
-                          <div className="w-8 h-8 md:w-10 md:h-10 rounded-full border border-blue-100 flex items-center justify-center text-primary text-[10px] md:text-sm font-bold bg-white font-mono">
+                          <div className="w-8 h-8 md:w-10 md:h-10 rounded-full border border-blue-100 flex items-center justify-center text-primary text-[10px] md:text-sm font-bold bg-white font-mono shrink-0">
                             {idx + 1}
                           </div>
-                          <span className="text-[#1a1a1a] font-bold text-[12px] md:text-base flex items-center gap-2">
-                            {product.name}
-                            {getProductCartQty(product.id) > 0 && (
-                              <span className="bg-green-100 text-green-600 text-[10px] px-1.5 py-0.5 rounded-full flex items-center gap-1">
-                                <ShoppingCart className="w-3 h-3" /> {getProductCartQty(product.id)}
-                              </span>
+                          <div className="flex flex-col gap-1">
+                            <span className="text-[#1a1a1a] font-bold text-[12px] md:text-base flex items-center gap-2">
+                              {product.name}
+                              {getProductCartQty(product.id) > 0 && (
+                                <span className="bg-green-100 text-green-600 text-[10px] px-1.5 py-0.5 rounded-full flex items-center gap-1">
+                                  <ShoppingCart className="w-3 h-3" /> {getProductCartQty(product.id)}
+                                </span>
+                              )}
+                            </span>
+                            {product.chemicalNames && product.chemicalNames.length > 0 && (
+                              <div className="flex flex-wrap gap-1">
+                                {product.chemicalNames.map((chem, cIdx) => (
+                                  <span
+                                    key={`${chem}-${cIdx}`}
+                                    className="bg-blue-50 text-blue-600 text-[10px] font-medium px-2 py-0.5 rounded-full"
+                                  >
+                                    {chem}
+                                  </span>
+                                ))}
+                              </div>
                             )}
-                          </span>
+                          </div>
                         </div>
                         <button
                           onClick={() => toggleProduct(product.id)}

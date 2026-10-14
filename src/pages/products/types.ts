@@ -11,6 +11,7 @@ export interface Product {
   brand?: string;
   category?: string;
   code?: string;
+  chemicalNames?: string[];
   images?: string[];
 }
 
@@ -24,6 +25,7 @@ export interface ApiProductItem {
     SKU: string;
     category: string;
     brand: string;
+    chemicalNames?: string[];
     unitOfMeasure: string;
     sellingPrice: number;
     wholesalePrices: { unit: string; quantity: number; price: number }[];

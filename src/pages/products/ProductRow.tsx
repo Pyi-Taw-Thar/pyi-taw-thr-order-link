@@ -42,7 +42,7 @@ export default function ProductRow({
         }`}
       >
         <div className="p-3 md:p-4 pr-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
+          <div className="flex flex-col gap-1">
             <span
               onClick={onNavigate}
               className="text-[#1a1a1a] font-bold text-[14px] md:text-[18px] cursor-pointer hover:text-blue-600 transition-colors inline-flex items-center gap-2"
@@ -54,6 +54,18 @@ export default function ProductRow({
                 </span>
               )}
             </span>
+            {product.chemicalNames && product.chemicalNames.length > 0 && (
+              <div className="flex flex-wrap gap-1">
+                {product.chemicalNames.map((chem, idx) => (
+                  <span
+                    key={`${chem}-${idx}`}
+                    className="bg-blue-50 text-blue-600 text-[10px] md:text-xs font-medium px-2 py-0.5 rounded-full"
+                  >
+                    {chem}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
           <button
             onClick={onToggle}

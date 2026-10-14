@@ -11,6 +11,7 @@ interface LimitedProduct {
   brand: string;
   category: string;
   code: string;
+  chemicalNames?: string[];
   prices: { unit: string; quantity: string; price: number }[];
 }
 
@@ -35,6 +36,7 @@ export default function LimitedSaleSection() {
             brand: p.brand,
             category: p.category || "အထွေထွေ",
             code: p.productCode,
+            chemicalNames: p.chemicalNames || [],
             prices: [
               {
                 unit: p.unitOfMeasure,
