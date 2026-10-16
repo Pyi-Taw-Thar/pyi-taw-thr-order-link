@@ -20,7 +20,7 @@ export default function Login() {
 
     setLoading(true);
     try {
-      await authService.login(phoneNumber, name.trim());
+      await authService.login(phoneNumber, name.trim().toLowerCase());
       window.location.href = "/";
     } catch (err: any) {
       let msg = "Login ဝင်ရာတွင် ပြဿနာရှိနေပါသည်။ နောက်မှ ထပ်ကြိုးစားပါ။";
@@ -75,7 +75,7 @@ export default function Login() {
                   placeholder="အမည် ထည့်ပါ"
                   value={name}
                   onChange={(e) => {
-                    setName(e.target.value);
+                    setName(e.target.value.toLowerCase());
                     setError("");
                   }}
                   className="w-full pl-11 pr-4 py-3.5 border border-gray-200 rounded-2xl text-base focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all placeholder:text-gray-300 bg-gray-50/30"

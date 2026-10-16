@@ -15,7 +15,7 @@ const authService = {
   login: async (phone: string, name: string): Promise<void> => {
     const response = await api.post<{ success: boolean; data: LoginData }>('/customer/login', {
       phone,
-      name,
+      name: name.trim().toLowerCase(),
       password: HARDCODED_PASSWORD,
     });
     const { token, customer } = response.data.data;

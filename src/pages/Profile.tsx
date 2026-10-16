@@ -23,7 +23,10 @@ interface ProfileData {
   name: string;
   phone: string;
   isActive: boolean;
-  addresses: Address[];
+  address?: string;
+  township?: string;
+  tier?: string;
+  addresses?: Address[];
   createdAt: string;
 }
 
@@ -190,7 +193,7 @@ export default function Profile() {
         </div>
 
         {/* Addresses */}
-        {profile.addresses.length > 0 && (
+        {(profile.addresses && profile.addresses.length > 0) ? (
           <div className="bg-white rounded-[32px] p-6 shadow-sm border border-gray-50 space-y-4">
             <h3 className="font-bold text-gray-800 text-sm flex items-center gap-2">
               <MapPin className="w-4 h-4 text-primary" />
@@ -219,7 +222,19 @@ export default function Profile() {
               ))}
             </div>
           </div>
-        )}
+        ) : (profile.address || profile.township) ? (
+          <div className="bg-white rounded-[32px] p-6 shadow-sm border border-gray-50 space-y-4">
+            <h3 className="font-bold text-gray-800 text-sm flex items-center gap-2">
+              <MapPin className="w-4 h-4 text-primary" />
+              လိပ်စာ
+            </h3>
+            <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100">
+              <p className="text-gray-700 text-[13px]">
+                {[profile.address, profile.township].filter(Boolean).join(", ")}
+              </p>
+            </div>
+          </div>
+        ) : null}
 
         {/* Order History */}
         <div className="bg-white rounded-[32px] p-6 shadow-sm border border-gray-50 space-y-4">
@@ -282,7 +297,7 @@ export default function Profile() {
                     </div>
 
                     <div className="space-y-1.5">
-                      {order.products.slice(0, 3).map((p) => (
+                      {(order.products || []).slice(0, 3).map((p) => (
                         <div
                           key={p._id}
                           className="flex items-center justify-between text-[12px]"
@@ -299,9 +314,9 @@ export default function Profile() {
                           </span>
                         </div>
                       ))}
-                      {order.products.length > 3 && (
+                      {(order.products || []).length > 3 && (
                         <p className="text-[10px] text-gray-400">
-                          + {order.products.length - 3} items more
+                          + {(order.products || []).length - 3} items more
                         </p>
                       )}
                     </div>
