@@ -3,6 +3,7 @@ import { useCart } from '../context/CartContext';
 import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import api from '../services/axios';
+import authService from '../services/auth.service';
 
 export default function Cart() {
   const navigate = useNavigate();
@@ -12,6 +13,14 @@ export default function Cart() {
   const [orderError, setOrderError] = useState('');
 
   const handleOrder = async () => {
+    const token = localStorage.getItem('access_token');
+    if (!token) {
+      // Login screen ပြပြီး login ဝင်လျှင် /cart သို့ ပြန်ရောက်မည် (cart item များ မပျောက်)
+      authService.logout();
+      window.location.reload();
+      return;
+    }
+
     setOrderLoading(true);
     setOrderError('');
 

@@ -4,6 +4,17 @@ export interface PriceTier {
   price: number;
 }
 
+export interface ProductImage {
+  url: string;
+  key?: string;
+}
+
+export interface UomConversion {
+  unit: string;
+  factor: number;
+  convertFrom?: string | null;
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -12,7 +23,9 @@ export interface Product {
   category?: string;
   code?: string;
   chemicalNames?: string[];
-  images?: string[];
+  images?: ProductImage[];
+  quantity?: number;
+  isOutOfStock?: boolean;
 }
 
 export interface ApiProductItem {
@@ -28,7 +41,8 @@ export interface ApiProductItem {
     chemicalNames?: string[];
     unitOfMeasure: string;
     sellingPrice: number;
+    uomConversions?: UomConversion[];
     wholesalePrices: { unit: string; quantity: number; price: number }[];
-    images: string[];
+    images: ProductImage[];
   };
 }

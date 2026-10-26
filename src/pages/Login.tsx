@@ -21,7 +21,10 @@ export default function Login() {
     setLoading(true);
     try {
       await authService.login(phoneNumber, name.trim().toLowerCase());
-      window.location.href = "/";
+      // URL ကို မပြောင်းဘဲ login screen ပြထား၍ လက်ရှိ page ကို reload လုပ်ရုံဖြင့် မူလ page သို့ ရောက်မည်
+      // (/login ပေါ်တွင်ရှိနေလျှင် home သို့)
+      const { pathname, search, hash } = window.location;
+      window.location.replace(pathname === "/login" ? "/" : pathname + search + hash);
     } catch (err: any) {
       let msg = "Login ဝင်ရာတွင် ပြဿနာရှိနေပါသည်။ နောက်မှ ထပ်ကြိုးစားပါ။";
       if (err?.response?.data?.message) {

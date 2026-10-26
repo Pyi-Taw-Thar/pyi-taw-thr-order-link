@@ -26,11 +26,14 @@ interface CartContextType {
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
-const CART_STORAGE_KEY = 'cart_items';
+// Unit အလိုက်စျေးသို့ ပြောင်းသဖြင့် wholesale စျေးဖြင့် သိမ်းထားသော cart ဟောင်းကို မသုံးတော့ပါ
+const CART_STORAGE_KEY = 'cart_items_v2';
+const LEGACY_CART_STORAGE_KEY = 'cart_items';
 
 export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [cartItems, setCartItems] = useState<CartItem[]>(() => {
     try {
+      localStorage.removeItem(LEGACY_CART_STORAGE_KEY);
       const stored = localStorage.getItem(CART_STORAGE_KEY);
       return stored ? JSON.parse(stored) : [];
     } catch {

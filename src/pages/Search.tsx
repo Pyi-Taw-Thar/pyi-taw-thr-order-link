@@ -3,22 +3,8 @@ import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import api from '../services/axios';
-
-interface PriceTier {
-  unit: string;
-  quantity: string;
-  price: number;
-}
-
-interface Product {
-  id: string;
-  name: string;
-  prices: PriceTier[];
-  brand?: string;
-  category?: string;
-  code?: string;
-  chemicalNames?: string[];
-}
+import { ApiProductItem, Product } from './products/types';
+import { mapApiProduct } from '../utils/mapProduct';
 
 export default function Search() {
   const [query, setQuery] = useState('');
@@ -49,31 +35,8 @@ export default function Search() {
         const response = await api.get('/ecommerce/products', {
           params: { search: query }
         });
-        const items = response.data.data || [];
-        const matches: Product[] = items.map((item: any) => {
-          const p = item.product;
-          return {
-            id: p._id,
-            name: p.productName,
-            brand: p.brand,
-            category: p.category || 'အထွေထွေ',
-            code: p.productCode,
-            chemicalNames: p.chemicalNames || [],
-            prices: [
-              {
-                unit: p.unitOfMeasure,
-                quantity: `1 ${p.unitOfMeasure}`,
-                price: p.sellingPrice,
-              },
-              ...(p.wholesalePrices || []).map((w: any) => ({
-                unit: w.unit,
-                quantity: `${w.quantity} ${w.unit}`,
-                price: w.price,
-              })),
-            ]
-          };
-        });
-        setResults(matches);
+        const items: ApiProductItem[] = response.data.data || [];
+        setResults(items.map(mapApiProduct));
       } catch (error) {
         console.error('Error fetching search results:', error);
       } finally {
@@ -132,7 +95,9 @@ export default function Search() {
         id: `${product.id}-${selectedVariant.unit}`,
         inventoryId: product.id,
         name: `${product.name} (${selectedVariant.unit})`,
-        price: selectedVariant.price
+        price: selectedVariant.price,
+        unit: selectedVariant.unit,
+        prices: product.prices,
       }, qty);
       setQuantities(prev => ({ ...prev, [product.id]: 0 }));
       setExpandedProductId(null);
@@ -255,119 +220,169 @@ export default function Search() {
                   </p>
                 </div>
               ) : results.length > 0 ? (
-                results.map((product, idx) => (
-                  <div key={product.id} className="space-y-4">
-                    <div
-                      className={`bg-white rounded-2xl border border-gray-100 shadow-sm transition-all overflow-hidden ${expandedProductId === product.id ? 'bg-[#f2f2f2]' : ''
-                        }`}
-                    >
-                      <div className="p-3 pr-4 flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                          <div className="w-8 h-8 md:w-10 md:h-10 rounded-full border border-blue-100 flex items-center justify-center text-primary text-[10px] md:text-sm font-bold bg-white font-mono shrink-0">
-                            {idx + 1}
-                          </div>
-                          <div className="flex flex-col gap-1">
-                            <span className="text-[#1a1a1a] font-bold text-[12px] md:text-base flex items-center gap-2">
-                              {product.name}
-                              {getProductCartQty(product.id) > 0 && (
-                                <span className="bg-green-100 text-green-600 text-[10px] px-1.5 py-0.5 rounded-full flex items-center gap-1">
-                                  <ShoppingCart className="w-3 h-3" /> {getProductCartQty(product.id)}
-                                </span>
-                              )}
-                            </span>
-                            {product.chemicalNames && product.chemicalNames.length > 0 && (
-                              <div className="flex flex-wrap gap-1">
-                                {product.chemicalNames.map((chem, cIdx) => (
-                                  <span
-                                    key={`${chem}-${cIdx}`}
-                                    className="bg-blue-50 text-blue-600 text-[10px] font-medium px-2 py-0.5 rounded-full"
-                                  >
-                                    {chem}
+                results.map((product, idx) => {
+                  const isOutOfStock = Boolean(product.isOutOfStock);
+                  return (
+                    <div key={product.id} className="space-y-4">
+                      <div
+                        className={`bg-white rounded-2xl border border-gray-100 shadow-sm transition-all overflow-hidden ${
+                          isOutOfStock ? "opacity-60 bg-gray-50/70" : ""
+                        } ${!isOutOfStock && expandedProductId === product.id ? "bg-[#f2f2f2]" : ""}`}
+                      >
+                        <div className="p-3 pr-4 flex items-center justify-between">
+                          <div className="flex items-center gap-4">
+                            <div className="w-8 h-8 md:w-10 md:h-10 rounded-full border border-blue-100 flex items-center justify-center text-primary text-[10px] md:text-sm font-bold bg-white font-mono shrink-0">
+                              {idx + 1}
+                            </div>
+                            <div className="flex flex-col gap-1">
+                              <span className="text-[#1a1a1a] font-bold text-[12px] md:text-base flex items-center gap-2">
+                                {product.name}
+                                {getProductCartQty(product.id) > 0 && (
+                                  <span className="bg-green-100 text-green-600 text-[10px] px-1.5 py-0.5 rounded-full flex items-center gap-1">
+                                    <ShoppingCart className="w-3 h-3" />{" "}
+                                    {getProductCartQty(product.id)}
                                   </span>
-                                ))}
-                              </div>
-                            )}
+                                )}
+                                {isOutOfStock && (
+                                  <span className="bg-red-50 text-red-500 border border-red-200 text-[10px] px-2 py-0.5 rounded-full whitespace-nowrap">
+                                    ပစ္စည်းပြတ်နေပါသည်
+                                  </span>
+                                )}
+                              </span>
+                              {product.chemicalNames &&
+                                product.chemicalNames.length > 0 && (
+                                  <div className="flex flex-wrap gap-1">
+                                    {product.chemicalNames.map((chem, cIdx) => (
+                                      <span
+                                        key={`${chem}-${cIdx}`}
+                                        className="bg-blue-50 text-blue-600 text-[10px] font-medium px-2 py-0.5 rounded-full"
+                                      >
+                                        {chem}
+                                      </span>
+                                    ))}
+                                  </div>
+                                )}
+                            </div>
                           </div>
+                          {isOutOfStock ? (
+                            <span className="text-[10px] md:text-xs font-semibold text-red-500 bg-red-50 border border-red-200 px-3 py-1 rounded-full whitespace-nowrap">
+                              ပစ္စည်းပြတ်နေသည်
+                            </span>
+                          ) : (
+                            <button
+                              onClick={() => toggleProduct(product.id)}
+                              className={`flex items-center gap-1 border px-3 py-1 md:px-4 md:py-1.5 rounded-full text-[10px] md:text-xs font-semibold transition-colors ${
+                                expandedProductId === product.id
+                                  ? "bg-white border-primary text-primary"
+                                  : "border-primary text-primary hover:bg-primary-light/10"
+                              }`}
+                            >
+                              {expandedProductId === product.id
+                                ? "ပိတ်မယ်"
+                                : "ဈေးကြည့်မယ်"}
+                              {expandedProductId === product.id ? (
+                                <ChevronUp className="w-4 h-4" />
+                              ) : (
+                                <ChevronDown className="w-4 h-4" />
+                              )}
+                            </button>
+                          )}
                         </div>
-                        <button
-                          onClick={() => toggleProduct(product.id)}
-                          className={`flex items-center gap-1 border px-3 py-1 md:px-4 md:py-1.5 rounded-full text-[10px] md:text-xs font-semibold transition-colors ${expandedProductId === product.id
-                            ? 'bg-white border-primary text-primary'
-                            : 'border-primary text-primary hover:bg-primary-light/10'
-                            }`}
-                        >
-                          {expandedProductId === product.id ? 'ပိတ်မယ်' : 'ဈေးကြည့်မယ်'}
-                          {expandedProductId === product.id ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                        </button>
+
+                        {!isOutOfStock && expandedProductId === product.id && (
+                          <div className="px-4 pb-4 space-y-2">
+                            <div className="text-[10px] font-bold text-gray-400 px-6 uppercase tracking-wider mb-1">
+                              ဝယ်ယူမည့်အမျိုးအစား ရွေးချယ်ပါ
+                            </div>
+                            {product.prices.map((price, pIdx) => (
+                              <div
+                                key={pIdx}
+                                onClick={() => setSelectedVariantIndex(pIdx)}
+                                className={`flex items-center justify-between p-3 px-6 rounded-xl cursor-pointer transition-all border-2 ${
+                                  selectedVariantIndex === pIdx
+                                    ? "bg-white border-blue-500 shadow-sm"
+                                    : "border-transparent hover:bg-white/50"
+                                }`}
+                              >
+                                <div className="flex flex-col">
+                                  <span
+                                    className={`font-bold text-[12px] md:text-[14px] ${
+                                      selectedVariantIndex === pIdx
+                                        ? "text-blue-600"
+                                        : "text-gray-700"
+                                    }`}
+                                  >
+                                    {price.quantity} {price.unit}
+                                  </span>
+                                </div>
+                                <div className="flex-1 border-b border-dotted border-gray-300 mx-4 h-0 mt-1" />
+                                <div className="flex items-baseline gap-1">
+                                  <span
+                                    className={`font-bold text-[12px] md:text-[14px] ${
+                                      selectedVariantIndex === pIdx
+                                        ? "text-blue-600"
+                                        : "text-gray-900"
+                                    }`}
+                                  >
+                                    {price.price.toLocaleString()}
+                                  </span>
+                                  <span
+                                    className={`text-[10px] font-bold ${
+                                      selectedVariantIndex === pIdx
+                                        ? "text-blue-600"
+                                        : "text-gray-500"
+                                    }`}
+                                  >
+                                    MMK
+                                  </span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
 
-                      {expandedProductId === product.id && (
-                        <div className="px-4 pb-4 space-y-2">
-                          <div className="text-[10px] font-bold text-gray-400 px-6 uppercase tracking-wider mb-1">ဝယ်ယူမည့်အမျိုးအစား ရွေးချယ်ပါ</div>
-                          {product.prices.map((price, pIdx) => (
-                            <div
-                              key={pIdx}
-                              onClick={() => setSelectedVariantIndex(pIdx)}
-                              className={`flex items-center justify-between p-3 px-6 rounded-xl cursor-pointer transition-all border-2 ${selectedVariantIndex === pIdx
-                                ? 'bg-white border-blue-500 shadow-sm'
-                                : 'border-transparent hover:bg-white/50'
-                                }`}
+                      {!isOutOfStock && expandedProductId === product.id && (
+                        <div className="flex items-center justify-between px-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                          <div className="flex items-center gap-4 md:gap-6">
+                            <button
+                              onClick={() => updateQuantity(product.id, -1)}
+                              className="w-10 h-10 md:w-14 md:h-14 bg-primary rounded-xl md:rounded-2xl flex items-center justify-center text-white shadow-lg active:scale-95 transition-transform"
                             >
-                              <div className="flex flex-col">
-                                <span className={`font-bold text-[12px] md:text-[14px] ${selectedVariantIndex === pIdx ? 'text-blue-600' : 'text-gray-700'}`}>
-                                  {price.quantity}
-                                </span>
-                              </div>
-                              <div className="flex-1 border-b border-dotted border-gray-300 mx-4 h-0 mt-1" />
-                              <div className="flex items-baseline gap-1">
-                                <span className={`font-bold text-[12px] md:text-[14px] ${selectedVariantIndex === pIdx ? 'text-blue-600' : 'text-gray-900'}`}>
-                                  {price.price.toLocaleString()}
-                                </span>
-                                <span className={`text-[10px] font-bold ${selectedVariantIndex === pIdx ? 'text-blue-600' : 'text-gray-500'}`}>MMK</span>
-                              </div>
-                            </div>
-                          ))}
+                              <Minus className="w-4 h-4 md:w-6 md:h-6 stroke-[3px]" />
+                            </button>
+                            <input
+                              type="number"
+                              value={quantities[product.id] || ""}
+                              onChange={(e) =>
+                                setQuantityValue(product.id, e.target.value)
+                              }
+                              className="text-xl md:text-3xl font-bold w-12 md:w-20 text-center bg-white rounded-xl border border-gray-200 py-1 md:py-2 focus:outline-none focus:ring-2 focus:ring-primary/20 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none font-mono"
+                              placeholder="0"
+                            />
+                            <button
+                              onClick={() => updateQuantity(product.id, 1)}
+                              className="w-10 h-10 md:w-14 md:h-14 bg-primary rounded-xl md:rounded-2xl flex items-center justify-center text-white shadow-lg active:scale-95 transition-transform"
+                            >
+                              <Plus className="w-4 h-4 md:w-6 md:h-6 stroke-[3px]" />
+                            </button>
+                          </div>
+                          <button
+                            onClick={() => handleAddToCart(product)}
+                            disabled={(quantities[product.id] || 0) === 0}
+                            className={`px-6 py-2.5 md:px-8 md:py-4 rounded-full font-bold text-[14px] md:text-lg shadow-md transition-all ${
+                              (quantities[product.id] || 0) > 0
+                                ? "bg-primary text-white active:scale-95"
+                                : "bg-[#dcdcdc] text-gray-500 cursor-not-allowed uppercase"
+                            }`}
+                          >
+                            ဆေးယူမယ်
+                          </button>
                         </div>
                       )}
                     </div>
-
-                    {expandedProductId === product.id && (
-                      <div className="flex items-center justify-between px-2 animate-in fade-in slide-in-from-top-2 duration-200">
-                        <div className="flex items-center gap-4 md:gap-6">
-                          <button
-                            onClick={() => updateQuantity(product.id, -1)}
-                            className="w-10 h-10 md:w-14 md:h-14 bg-primary rounded-xl md:rounded-2xl flex items-center justify-center text-white shadow-lg active:scale-95 transition-transform"
-                          >
-                            <Minus className="w-4 h-4 md:w-6 md:h-6 stroke-[3px]" />
-                          </button>
-                          <input
-                            type="number"
-                            value={quantities[product.id] || ''}
-                            onChange={(e) => setQuantityValue(product.id, e.target.value)}
-                            className="text-xl md:text-3xl font-bold w-12 md:w-20 text-center bg-white rounded-xl border border-gray-200 py-1 md:py-2 focus:outline-none focus:ring-2 focus:ring-primary/20 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none font-mono"
-                            placeholder="0"
-                          />
-                          <button
-                            onClick={() => updateQuantity(product.id, 1)}
-                            className="w-10 h-10 md:w-14 md:h-14 bg-primary rounded-xl md:rounded-2xl flex items-center justify-center text-white shadow-lg active:scale-95 transition-transform"
-                          >
-                            <Plus className="w-4 h-4 md:w-6 md:h-6 stroke-[3px]" />
-                          </button>
-                        </div>
-                        <button
-                          onClick={() => handleAddToCart(product)}
-                          disabled={(quantities[product.id] || 0) === 0}
-                          className={`px-6 py-2.5 md:px-8 md:py-4 rounded-full font-bold text-[14px] md:text-lg shadow-md transition-all ${(quantities[product.id] || 0) > 0
-                            ? 'bg-primary text-white active:scale-95'
-                            : 'bg-[#dcdcdc] text-gray-500 cursor-not-allowed uppercase'
-                            }`}
-                        >
-                          ဆေးယူမယ်
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                ))
+                  );
+                })
               ) : (
                 <div className="py-20 text-center space-y-4">
                   <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto">

@@ -1,0 +1,8 @@
+# Netlify အတွက်သာ (Cloudflare Pages က ဤဖိုင်ကို မဖတ်ပါ)
+# SPA route rewrite နှင့် cache header များကို public/_redirects, public/_headers တွင် ထားသည်
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"

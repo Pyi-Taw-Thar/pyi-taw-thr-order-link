@@ -67,7 +67,6 @@ ecommerce/
 │   ├── pages/products/
 │   │   ├── types.ts           # Product type definitions
 │   │   ├── BrandGrid.tsx      # Brand selection grid
-│   │   ├── CategoryGrid.tsx   # Category selection grid
 │   │   ├── ProductList.tsx    # Product listing with categories
 │   │   └── ProductRow.tsx     # Product row component
 │   ├── components/
@@ -95,7 +94,8 @@ ecommerce/
 │       ├── fonts/              # ChivoMono-Regular, Tagus (custom fonts)
 │       └── images/             # Logo, product images, banner
 ├── public/
-│   └── medicines.json          # Static product data (fallback)
+│   ├── _redirects              # SPA rewrite (Netlify / Cloudflare Pages)
+│   └── _headers                # /assets/* cache header
 ├── dist/                       # Built production assets
 ├── rules/                      # Coding rules and patterns
 └── plans/                      # Implementation plans
@@ -151,8 +151,8 @@ ecommerce/
 - **Empty states**: Centered icon + message + action button
 
 ### Navigation Flow
-1. **Home** → BrandSection → click brand → goes to `/products?brand=X`
-2. **Products** → CategoryGrid → click category → goes to `/products?brand=X&category=Y`
+1. **Home** → SubCategorySection → click sub-category → goes to `/products?subCategory=X`
+2. **Products** → BrandGrid → click brand → goes to `/products?subCategory=X&brand=Y`
 3. **Products** → ProductList → click product → goes to `/product/:id`
 4. **ProductDetail** → select variant + quantity → add to cart → navigates to `/cart`
 5. **Cart** → review items → place order → success modal → redirect to home

@@ -22,11 +22,22 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     const isLoginRequest = error.config?.url?.includes('/customer/login');
-    if (error.response?.status === 401 && !isLoginRequest) {
+    const msg = String(error.response?.data?.message || '').toLowerCase();
+    const isTokenExpired =
+      error.response?.status === 401 ||
+      msg.includes('jwt expired') ||
+      msg.includes('token expired') ||
+      msg.includes('invalid token');
+
+    if (isTokenExpired && !isLoginRequest) {
+      // authService.logout() နှင့် တူညီ (auth.service က ဤဖိုင်ကို import လုပ်၍ circular import ရှောင်ရန် တိုက်ရိုက်ရေးသည်)
       localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
       localStorage.removeItem('isLoggedIn');
       localStorage.removeItem('user_phone');
-      window.location.href = '/';
+      localStorage.removeItem('user_info');
+      // URL မပြောင်းဘဲ reload — Login screen ပြပြီး login ဝင်လျှင် ဤ page သို့ ပြန်ရောက်မည်
+      window.location.reload();
     }
     return Promise.reject(error);
   }

@@ -6,6 +6,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Clock,
+  AlertTriangle,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
@@ -36,6 +37,7 @@ interface OrderProduct {
   productCode: string;
   unit: string;
   quantity: number;
+  originalQuantity?: number | null;
   unitPrice: number;
   subtotal: number;
 }
@@ -48,6 +50,9 @@ interface OrderData {
   paymentMethod: string;
   paymentStatus: string;
   note: string | null;
+  isEdited?: boolean;
+  editedReason?: string | null;
+  editedAt?: string | null;
   products: OrderProduct[];
   createdAt: string;
 }
@@ -278,7 +283,13 @@ export default function Profile() {
                           {order.orderNumber}
                         </span>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        {order.isEdited && (
+                          <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 border border-amber-200 flex items-center gap-1">
+                            <AlertTriangle className="w-2.5 h-2.5" />
+                            ပြင်ဆင်ထားသည်
+                          </span>
+                        )}
                         <span
                           className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${statusStyles[order.status] || "bg-gray-100 text-gray-600"}`}
                         >
@@ -308,6 +319,11 @@ export default function Profile() {
                               {" "}
                               × {p.quantity} {p.unit}
                             </span>
+                            {p.originalQuantity != null && p.originalQuantity > p.quantity && (
+                              <span className="text-amber-600 font-semibold text-[10px] ml-1.5 inline-block">
+                                (မူလ: {p.originalQuantity} {p.unit})
+                              </span>
+                            )}
                           </span>
                           <span className="font-bold text-gray-800 font-mono">
                             {p.subtotal.toLocaleString()}
@@ -331,8 +347,23 @@ export default function Profile() {
                     </div>
 
                     {order.note && (
-                      <div className="bg-yellow-50 rounded-xl p-2.5 text-[11px] text-yellow-700">
-                        <span className="font-bold">Note:</span> {order.note}
+                      <div
+                        className={`rounded-2xl p-3 text-[11px] md:text-[12px] space-y-1 ${
+                          order.isEdited ||
+                          order.note.includes("⚠️") ||
+                          order.note.includes("ပြင်ဆင်") ||
+                          order.note.includes("ပစ္စည်းလက်ကျန်")
+                            ? "bg-amber-50 border border-amber-200 text-amber-900"
+                            : "bg-yellow-50 text-yellow-700"
+                        }`}
+                      >
+                        <div className="flex items-center gap-1.5 font-bold text-amber-800">
+                          <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                          <span>အော်ဒါမှတ်ချက် / အသိပေးချက်:</span>
+                        </div>
+                        <p className="whitespace-pre-line leading-relaxed pl-5 font-medium">
+                          {order.note}
+                        </p>
                       </div>
                     )}
                   </div>

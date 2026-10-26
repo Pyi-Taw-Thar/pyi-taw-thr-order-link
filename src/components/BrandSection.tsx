@@ -10,7 +10,6 @@ interface Brand {
 export default function BrandSection() {
   const navigate = useNavigate();
   const [brands, setBrands] = useState<Brand[]>([]);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchBrands = async () => {
@@ -24,8 +23,6 @@ export default function BrandSection() {
         setBrands(formatted);
       } catch (error) {
         console.error("Error fetching brands:", error);
-      } finally {
-        setLoading(false);
       }
     };
 
@@ -46,10 +43,13 @@ export default function BrandSection() {
               onClick={() =>
                 navigate(`/products?brand=${encodeURIComponent(brand.title)}`)
               }
-              className="px-5 h-16 md:h-16 rounded-xl bg-white border border-gray-100 shadow-sm text-primary-dark font-semibold text-[13px] md:text-[18px] hover:bg-blue-50 hover:border-blue-200 hover:scale-105 transition-all text-center min-w-[100px] md:min-w-[160px] animate-in fade-in slide-in-from-bottom duration-500 font-ChivoMono"
+              title={brand.title}
+              className="px-3 md:px-5 h-16 md:h-16 rounded-xl bg-white border border-gray-100 shadow-sm text-primary-dark font-semibold text-[13px] md:text-[18px] hover:bg-blue-50 hover:border-blue-200 hover:scale-105 transition-all flex items-center justify-center text-center min-w-[100px] md:min-w-[160px] animate-in fade-in slide-in-from-bottom duration-500 font-ChivoMono"
               style={{ animationDelay: `${index * 50}ms` }}
             >
-              {brand.title}
+              <span className="line-clamp-2 text-ellipsis overflow-hidden break-words leading-tight">
+                {brand.title}
+              </span>
             </button>
           ))}
         </div>

@@ -1,24 +1,23 @@
 import { ShoppingCart } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import api from "../services/axios";
-import { Product, ApiProductItem } from "./products/types";
+import { ApiProductItem } from "./products/types";
+import { mapApiProduct } from "../utils/mapProduct";
 import BrandGrid from "./products/BrandGrid";
-import CategoryGrid from "./products/CategoryGrid";
 import ProductList from "./products/ProductList";
 
 export default function Products() {
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const selectedSubCategory = searchParams.get("subCategory") || null;
   const selectedBrand = searchParams.get("brand") || null;
-  const selectedCategory = searchParams.get("category") || null;
 
   const [brands, setBrands] = useState<string[]>([]);
-  const [categories, setCategories] = useState<string[]>([]);
-  const [catLoading, setCatLoading] = useState(false);
   const [products, setProducts] = useState<ApiProductItem[]>([]);
   const [prodLoading, setProdLoading] = useState(false);
 
+  // Fetch brands matching the subCategory (or all brands if no subCategory)
   useEffect(() => {
     if (selectedBrand) return;
     const fetchBrands = async () => {
@@ -34,40 +33,20 @@ export default function Products() {
     fetchBrands();
   }, [selectedBrand, selectedSubCategory]);
 
+  // Fetch all products under the selected brand directly (skip category selection)
   useEffect(() => {
     if (!selectedBrand) {
-      setCategories([]);
-      return;
-    }
-    const fetchCategories = async () => {
-      setCatLoading(true);
-      try {
-        const response = await api.get("/ecommerce/products/categories", {
-          params: { brand: selectedBrand },
-        });
-        setCategories(response.data.data);
-      } catch (error) {
-        console.error("Error fetching categories:", error);
-      } finally {
-        setCatLoading(false);
-      }
-    };
-    fetchCategories();
-  }, [selectedBrand]);
-
-  useEffect(() => {
-    if (!selectedBrand || !selectedCategory) {
       setProducts([]);
       return;
     }
     const fetchProducts = async () => {
       setProdLoading(true);
       try {
-        const response = await api.get("/ecommerce/products", {
-          params: { brand: selectedBrand, category: selectedCategory },
-        });
-        console.log("response", response.data.data);
-
+        const params: Record<string, string> = { brand: selectedBrand };
+        if (selectedSubCategory) {
+          params.subCategory = selectedSubCategory;
+        }
+        const response = await api.get("/ecommerce/products", { params });
         setProducts(response.data.data);
       } catch (error) {
         console.error("Error fetching products:", error);
@@ -76,83 +55,47 @@ export default function Products() {
       }
     };
     fetchProducts();
-  }, [selectedBrand, selectedCategory]);
+  }, [selectedBrand, selectedSubCategory]);
 
-  const productData = useMemo(() => {
-    const categoriesMap: Record<string, Product[]> = {};
-    // console.log("products", products);
-    products.forEach((item) => {
-      console.log("item", item);
-      const p = item.product;
-      const cat = p.category || "အထွေထွေ";
-      const product: Product = {
-        id: p._id,
-        name: p.productName,
-        brand: p.brand,
-        category: cat,
-        code: p.productCode,
-        chemicalNames: p.chemicalNames || [],
-        images: p.images || [],
-        prices: [
-          {
-            unit: p.unitOfMeasure,
-            quantity: 1,
-            price: p.sellingPrice,
-          },
-          ...p.wholesalePrices.map((w) => ({
-            unit: w.unit,
-            quantity: w.quantity,
-            price: w.price,
-          })),
-        ],
-      };
-      if (!categoriesMap[cat]) categoriesMap[cat] = [];
-      categoriesMap[cat].push(product);
-    });
-    return Object.entries(categoriesMap).map(([title, prods]) => ({
-      title,
-      products: prods,
-    }));
-  }, [products]);
+  const formattedProducts = useMemo(
+    () => products.map(mapApiProduct),
+    [products],
+  );
 
   const handleBrandSelect = (brandName: string) => {
     const params: Record<string, string> = { brand: brandName };
     if (selectedSubCategory) params.subCategory = selectedSubCategory;
     setSearchParams(params);
   };
-  const handleCategorySelect = (catName: string) => {
-    const params: Record<string, string> = { brand: selectedBrand!, category: catName };
-    if (selectedSubCategory) params.subCategory = selectedSubCategory;
-    setSearchParams(params);
-  };
+
   const goBackToBrands = () => {
     const params: Record<string, string> = {};
     if (selectedSubCategory) params.subCategory = selectedSubCategory;
     setSearchParams(params);
   };
-  const goBackToCategories = () => {
-    const params: Record<string, string> = { brand: selectedBrand! };
-    if (selectedSubCategory) params.subCategory = selectedSubCategory;
-    setSearchParams(params);
+
+  const goBackToHome = () => {
+    navigate("/");
   };
 
+  // Step 1: If no brand selected, show BrandGrid
   if (!selectedBrand) {
-    return <BrandGrid brands={brands} onSelect={handleBrandSelect} />;
-  }
-
-  if (!selectedCategory) {
     return (
-      <CategoryGrid
-        brand={selectedBrand}
-        categories={categories}
-        loading={catLoading}
-        onSelect={handleCategorySelect}
-        onBack={goBackToBrands}
-        onChangeBrand={goBackToBrands}
+      <BrandGrid
+        brands={brands}
+        onSelect={handleBrandSelect}
+        showBackButton={true}
+        onBack={goBackToHome}
+        subtitle={
+          selectedSubCategory
+            ? `${selectedSubCategory} - အမှတ်တံဆိပ် ${brands.length} ခု`
+            : undefined
+        }
       />
     );
   }
 
+  // Step 2: Directly show all products under selected brand (category grid skipped)
   if (prodLoading) {
     return (
       <div className="bg-[#f8f9fa] min-h-screen flex items-center justify-center">
@@ -172,6 +115,12 @@ export default function Products() {
         <p className="text-gray-400 font-medium text-sm">
           ဆေးဝါးများ မရှိသေးပါ
         </p>
+        <button
+          onClick={goBackToBrands}
+          className="mt-4 px-4 py-2 bg-primary text-white rounded-lg text-xs font-semibold hover:bg-primary/90 transition-all"
+        >
+          နောက်သို့ ပြန်သွားမည်
+        </button>
       </div>
     );
   }
@@ -179,9 +128,8 @@ export default function Products() {
   return (
     <ProductList
       brand={selectedBrand}
-      category={selectedCategory}
-      productData={productData}
-      onBackToCategories={goBackToCategories}
+      subCategory={selectedSubCategory}
+      products={formattedProducts}
       onBackToBrands={goBackToBrands}
     />
   );

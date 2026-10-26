@@ -11,24 +11,10 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import { findBestTierIndex } from "../utils/pricing";
+import { mapApiProduct } from "../utils/mapProduct";
+import { Product } from "./products/types";
+import api from "../services/axios";
 import paracetamolImg from "../assets/images/products/paracetamol.png";
-
-interface PriceTier {
-  unit: string;
-  quantity: number;
-  price: number;
-}
-
-interface ProductDetailData {
-  id: string;
-  name: string;
-  brand: string;
-  category: string;
-  code: string;
-  chemicalNames?: string[];
-  prices: PriceTier[];
-  images: { url: string }[];
-}
 
 export default function ProductDetail() {
   const { id } = useParams<{ id: string }>();
@@ -36,12 +22,45 @@ export default function ProductDetail() {
   const location = useLocation();
   const { addToCart, setQuantity: cartSetQuantity, cartItems } = useCart();
 
-  const [product, setProduct] = useState<ProductDetailData | null>(
-    location.state?.product || null,
-  );
+  // List မှ ဝင်လာလျှင် state ကို ချက်ချင်းပြရန်သာ သုံးပြီး data အသစ်ကို အမြဲ fetch လုပ်သည်
+  const initialProduct: Product | null = location.state?.product ?? null;
+  const [product, setProduct] = useState<Product | null>(initialProduct);
   const [selectedVariantIndex, setSelectedVariantIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
-  const [loading, setLoading] = useState(!product);
+  const [loading, setLoading] = useState(!initialProduct);
+
+  useEffect(() => {
+    if (!id) {
+      setLoading(false);
+      return;
+    }
+    let cancelled = false;
+    const fetchProduct = async () => {
+      try {
+        const response = await api.get("/ecommerce/products", {
+          params: { id },
+        });
+        const item = response.data.data?.[0];
+        if (cancelled) return;
+        const fresh = item ? mapApiProduct(item) : null;
+        setProduct(fresh);
+        // ဈေးနှုန်း tier အရေအတွက် ပြောင်းသွားပါက index range ကျော်မသွားစေရန်
+        if (fresh) {
+          setSelectedVariantIndex((i) => (i < fresh.prices.length ? i : 0));
+        }
+      } catch (error) {
+        console.error("Error fetching product:", error);
+        // state မှ data ရှိပြီးသားဆိုလျှင် ဆက်ပြထားမည်
+        if (!cancelled && !initialProduct) setProduct(null);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+    fetchProduct();
+    return () => {
+      cancelled = true;
+    };
+  }, [id]);
 
   useEffect(() => {
     if (product) {
@@ -54,7 +73,6 @@ export default function ProductDetail() {
       }
     }
   }, [selectedVariantIndex, product]);
-  console.log(product);
 
   useEffect(() => {
     if (!product) return;
@@ -119,6 +137,10 @@ export default function ProductDetail() {
     );
   }
 
+  const isOutOfStock = Boolean(
+    product.isOutOfStock ||
+      (product.quantity !== undefined && product.quantity <= 0),
+  );
   const selectedVariant = product.prices[selectedVariantIndex];
 
   return (
@@ -136,7 +158,11 @@ export default function ProductDetail() {
       </div>
 
       <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
-        <div className="relative aspect-square rounded-[10px] overflow-hidden bg-white border border-gray-100 shadow-sm flex items-center justify-center">
+        <div
+          className={`relative aspect-square rounded-[10px] overflow-hidden bg-white border border-gray-100 shadow-sm flex items-center justify-center ${
+            isOutOfStock ? "opacity-75 grayscale-[20%]" : ""
+          }`}
+        >
           <img
             src={product.images?.[0]?.url || paracetamolImg}
             alt={product.name}
@@ -150,11 +176,25 @@ export default function ProductDetail() {
               <span className="bg-blue-50 text-blue-600 text-[10px] font-bold px-2 py-1 rounded">
                 {product.code}
               </span>
+              {isOutOfStock && (
+                <span className="bg-red-50 text-red-500 border border-red-200 text-[10px] font-bold px-2 py-1 rounded">
+                  ပစ္စည်းပြတ်နေပါသည်
+                </span>
+              )}
             </div>
             <h2 className="text-xl font-bold text-gray-900 leading-tight">
               {product.name}
             </h2>
           </div>
+
+          {isOutOfStock && (
+            <div className="bg-red-50 border border-red-200 text-red-600 text-sm font-semibold px-4 py-3 rounded-2xl flex items-center justify-between">
+              <span>ပစ္စည်းလက်ကျန် ပြတ်နေပါသည်</span>
+              <span className="text-xs uppercase font-bold tracking-wider bg-red-100 px-2 py-0.5 rounded">
+                Out of Stock
+              </span>
+            </div>
+          )}
 
           <div className="grid grid-cols-2 gap-4">
             <div className="bg-gray-50 rounded-2xl p-4 space-y-1">
@@ -271,9 +311,14 @@ export default function ProductDetail() {
           </div>
 
           <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-4 bg-gray-100 p-1.5 rounded-2xl">
+            <div
+              className={`flex items-center gap-4 bg-gray-100 p-1.5 rounded-2xl ${
+                isOutOfStock ? "opacity-40 pointer-events-none" : ""
+              }`}
+            >
               <button
                 onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                disabled={isOutOfStock}
                 className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-gray-600 hover:text-primary transition-all active:scale-90 shadow-sm"
               >
                 <Minus className="w-4 h-4 stroke-[3px]" />
@@ -283,6 +328,7 @@ export default function ProductDetail() {
               </span>
               <button
                 onClick={() => setQuantity(quantity + 1)}
+                disabled={isOutOfStock}
                 className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white transition-all active:scale-90 shadow-md shadow-blue-100"
               >
                 <Plus className="w-4 h-4 stroke-[3px]" />
@@ -290,9 +336,14 @@ export default function ProductDetail() {
             </div>
             <button
               onClick={handleAddToCart}
-              className="flex-1 bg-primary text-white py-3 rounded-2xl font-bold text-[15px] tracking-wide active:scale-95 transition-all shadow-lg shadow-blue-100 border-b-4 border-blue-700"
+              disabled={isOutOfStock || quantity === 0}
+              className={`flex-1 py-3 rounded-2xl font-bold text-[15px] tracking-wide transition-all shadow-lg ${
+                isOutOfStock || quantity === 0
+                  ? "bg-gray-300 text-gray-500 cursor-not-allowed border-b-4 border-gray-400"
+                  : "bg-primary text-white active:scale-95 shadow-blue-100 border-b-4 border-blue-700"
+              }`}
             >
-              ဆေးယူမယ်
+              {isOutOfStock ? "ပစ္စည်းပြတ်နေပါသည်" : "ဆေးယူမယ်"}
             </button>
           </div>
         </div>

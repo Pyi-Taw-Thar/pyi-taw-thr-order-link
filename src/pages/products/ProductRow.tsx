@@ -34,12 +34,14 @@ export default function ProductRow({
   onAddToCart,
   onNavigate,
 }: ProductRowProps) {
+  const isOutOfStock = Boolean(product.isOutOfStock);
+
   return (
     <div className="space-y-4">
       <div
         className={`bg-white rounded-2xl py-0 md:py-2 border border-gray-100 shadow-sm transition-all overflow-hidden ${
-          expanded ? "bg-[#f2f2f2]" : ""
-        }`}
+          isOutOfStock ? "opacity-60 bg-gray-50/70" : ""
+        } ${expanded && !isOutOfStock ? "bg-[#f2f2f2]" : ""}`}
       >
         <div className="p-3 md:p-4 pr-4 flex items-center justify-between">
           <div className="flex flex-col gap-1">
@@ -51,6 +53,11 @@ export default function ProductRow({
               {cartQty > 0 && (
                 <span className="bg-green-100 text-green-600 text-[10px] px-1.5 py-0.5 rounded-full flex items-center gap-1">
                   <ShoppingCart className="w-3 h-3" /> {cartQty}
+                </span>
+              )}
+              {isOutOfStock && (
+                <span className="bg-red-50 text-red-500 border border-red-200 text-[10px] md:text-xs px-2 py-0.5 rounded-full font-medium">
+                  ပစ္စည်းပြတ်နေပါသည်
                 </span>
               )}
             </span>
@@ -67,24 +74,30 @@ export default function ProductRow({
               </div>
             )}
           </div>
-          <button
-            onClick={onToggle}
-            className={`flex items-center text-primary gap-1 border px-4 py-1.5 rounded-full text-[10px] md:text-[16px] font-semibold transition-colors ${
-              expanded
-                ? "bg-white border-blue-500 text-[8px] md:text-[16px]"
-                : "border-blue-500 text-[8px] md:text-[16px] hover:bg-blue-50"
-            }`}
-          >
-            {expanded ? "ပိတ်မယ်" : "ဈေးကြည့်မယ်"}
-            {expanded ? (
-              <ChevronUp className="w-4 h-4" />
-            ) : (
-              <ChevronDown className="w-4 h-4" />
-            )}
-          </button>
+          {isOutOfStock ? (
+            <span className="text-[10px] md:text-[14px] font-semibold text-red-500 bg-red-50 border border-red-200 px-3 py-1 rounded-full whitespace-nowrap">
+              ပစ္စည်းပြတ်နေသည်
+            </span>
+          ) : (
+            <button
+              onClick={onToggle}
+              className={`flex items-center text-primary gap-1 border px-4 py-1.5 rounded-full text-[10px] md:text-[16px] font-semibold transition-colors ${
+                expanded
+                  ? "bg-white border-blue-500 text-[8px] md:text-[16px]"
+                  : "border-blue-500 text-[8px] md:text-[16px] hover:bg-blue-50"
+              }`}
+            >
+              {expanded ? "ပိတ်မယ်" : "ဈေးကြည့်မယ်"}
+              {expanded ? (
+                <ChevronUp className="w-4 h-4" />
+              ) : (
+                <ChevronDown className="w-4 h-4" />
+              )}
+            </button>
+          )}
         </div>
 
-        {expanded && (
+        {!isOutOfStock && expanded && (
           <div className="px-4 pb-4 space-y-2">
             <div className="text-[10px] font-bold text-gray-400 px-6 uppercase tracking-wider mb-1">
               ဝယ်ယူမည့်အမျိုးအစား ရွေးချယ်ပါ
@@ -140,7 +153,7 @@ export default function ProductRow({
         )}
       </div>
 
-      {expanded && (
+      {!isOutOfStock && expanded && (
         <div className="flex items-center justify-between px-2 animate-in fade-in slide-in-from-top-2 duration-200">
           <div className="flex items-center gap-6">
             <button
