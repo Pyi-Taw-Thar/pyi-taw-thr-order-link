@@ -1,16 +1,18 @@
-import {
-  ArrowLeft,
-  User,
-  MapPin,
-  Package,
-  ChevronLeft,
-  ChevronRight,
-  Clock,
-  AlertTriangle,
-} from "lucide-react";
-import { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { ArrowLeft, MapPin, Package, ChevronRight, AlertTriangle, LogOut } from "lucide-react";
+import { useState, useEffect, useMemo, useCallback } from "react";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
+import axios from "axios";
 import api from "../services/axios";
+import authService from "../services/auth.service";
+import LogoutModal from "../components/LogoutModal";
+import OrderDetailSheet, { OrderData } from "../components/OrderDetailSheet";
+import {
+  ACTIVE_STATUSES,
+  formatDateTime,
+  formatMoney,
+  getStatusColor,
+  getStatusLabel,
+} from "../utils/orderStatus";
 
 interface Address {
   label: string;
@@ -31,32 +33,6 @@ interface ProfileData {
   createdAt: string;
 }
 
-interface OrderProduct {
-  _id: string;
-  productName: string;
-  productCode: string;
-  unit: string;
-  quantity: number;
-  originalQuantity?: number | null;
-  unitPrice: number;
-  subtotal: number;
-}
-
-interface OrderData {
-  _id: string;
-  orderNumber: string;
-  totalAmount: number;
-  status: string;
-  paymentMethod: string;
-  paymentStatus: string;
-  note: string | null;
-  isEdited?: boolean;
-  editedReason?: string | null;
-  editedAt?: string | null;
-  products: OrderProduct[];
-  createdAt: string;
-}
-
 interface Pagination {
   currentPage: number;
   totalPages: number;
@@ -64,20 +40,66 @@ interface Pagination {
   itemsPerPage: number;
 }
 
-const statusStyles: Record<string, string> = {
-  pending: "bg-yellow-100 text-yellow-700",
-  confirmed: "bg-green-100 text-green-700",
-  delivered: "bg-blue-100 text-blue-700",
-  cancelled: "bg-red-100 text-red-700",
+type OrderFilter = "all" | "active" | "done";
+
+const FILTERS: { key: OrderFilter; label: string }[] = [
+  { key: "all", label: "အားလုံး" },
+  { key: "active", label: "လုပ်ဆောင်ဆဲ" },
+  { key: "done", label: "ပြီးဆုံး" },
+];
+
+const PAGE_SIZE = 10;
+
+// Card ခေါင်းစဉ် — ပထမ ပစ္စည်း + ကျန်အရေအတွက်
+const orderTitle = (order: OrderData) => {
+  const [first, ...rest] = order.products || [];
+  if (!first) return "ပစ္စည်း မရှိ";
+  return rest.length > 0
+    ? `${first.productName} နှင့် အခြား ${rest.length} မျိုး`
+    : first.productName;
 };
 
-const paymentStatusStyles: Record<string, string> = {
-  unpaid: "bg-yellow-50 text-yellow-600",
-  paid: "bg-green-50 text-green-600",
-};
+function OrderCard({ order, onOpen }: { order: OrderData; onOpen: () => void }) {
+  const color = getStatusColor(order.status);
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      className="relative w-full text-left bg-white rounded-2xl border border-gray-100 pl-5 pr-3 py-3.5 overflow-hidden active:bg-gray-50 hover:border-gray-200 focus-visible:ring-2 focus-visible:ring-[#007FFF] outline-none transition-colors"
+    >
+      {/* ဘယ်ဘက် အရောင်ဘား = status */}
+      <span className={`absolute left-0 top-0 bottom-0 w-1.5 ${color.bar}`} aria-hidden="true" />
+      <div className="flex items-start gap-3">
+        <p className="flex-1 min-w-0 text-[15px] font-bold text-[#1A1A1A] leading-snug break-words line-clamp-2">
+          {orderTitle(order)}
+        </p>
+        <span className={`shrink-0 inline-flex items-center gap-1.5 text-[12px] font-bold ${color.text} mt-0.5`}>
+          <span className={`w-2 h-2 rounded-full ${color.dot}`} />
+          {getStatusLabel(order.status)}
+        </span>
+      </div>
+      <p className="text-[12px] text-gray-500 mt-1">{formatDateTime(order.createdAt)}</p>
+      <div className="flex items-center justify-between gap-3 mt-2.5">
+        {order.isEdited ? (
+          <span className="inline-flex items-center gap-1 text-[12px] font-bold text-[#B45309]">
+            <AlertTriangle className="w-3.5 h-3.5" />
+            ပြင်ဆင်ထားသည်
+          </span>
+        ) : (
+          <span />
+        )}
+        <span className="inline-flex items-center gap-1 text-[#014E9C]">
+          <span className="text-[20px] font-bold leading-none">{formatMoney(order.totalAmount)}</span>
+          <ChevronRight className="w-4 h-4 text-gray-400" />
+        </span>
+      </div>
+    </button>
+  );
+}
 
 export default function Profile() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [orders, setOrders] = useState<OrderData[]>([]);
   const [pagination, setPagination] = useState<Pagination | null>(null);
@@ -85,15 +107,21 @@ export default function Profile() {
   const [ordersLoading, setOrdersLoading] = useState(false);
   const [error, setError] = useState("");
   const [page, setPage] = useState(1);
+  const [filter, setFilter] = useState<OrderFilter>("all");
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+  const [fetchedOrder, setFetchedOrder] = useState<OrderData | null>(null);
+  const [orderLoading, setOrderLoading] = useState(false);
+
+  const selectedOrderId = searchParams.get("order");
 
   useEffect(() => {
     const fetchProfile = async () => {
       try {
         const response = await api.get("/customer/me");
         setProfile(response.data.data);
-      } catch (err: any) {
+      } catch (err) {
         const msg =
-          err?.response?.data?.message ||
+          (axios.isAxiosError(err) && err.response?.data?.message) ||
           "ပရိုဖိုင်အချက်အလက်များ ရယူရန် ပြဿနာရှိနေပါသည်။";
         setError(msg);
       } finally {
@@ -103,16 +131,22 @@ export default function Profile() {
     fetchProfile();
   }, []);
 
+  // Load more — page အသစ်ကို ရှိပြီးသား list နောက်တွင် ဆက်ထည့်
   useEffect(() => {
     const fetchOrders = async () => {
       setOrdersLoading(true);
       try {
         const response = await api.get("/ecommerce/orders", {
-          params: { page, limit: 10 },
+          params: { page, limit: PAGE_SIZE },
         });
-        setOrders(response.data.data);
+        const incoming: OrderData[] = response.data.data || [];
+        setOrders((prev) => {
+          if (page === 1) return incoming;
+          const seen = new Set(prev.map((o) => o._id));
+          return [...prev, ...incoming.filter((o) => !seen.has(o._id))];
+        });
         setPagination(response.data.pagination);
-      } catch (err: any) {
+      } catch (err) {
         console.error("Error fetching orders:", err);
       } finally {
         setOrdersLoading(false);
@@ -121,25 +155,47 @@ export default function Profile() {
     fetchOrders();
   }, [page]);
 
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  };
+  const listedOrder = useMemo(
+    () => orders.find((o) => o._id === selectedOrderId) || null,
+    [orders, selectedOrderId]
+  );
 
-  const formatDateTime = (dateStr: string) => {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
+  // ?order=<id> (notification မှ ဝင်လာခြင်း) — list ထဲမရှိလျှင် API မှ တိုက်ရိုက်ယူ
+  useEffect(() => {
+    if (!selectedOrderId || listedOrder || ordersLoading) return;
+    if (fetchedOrder?._id === selectedOrderId) return;
+    let cancelled = false;
+    setOrderLoading(true);
+    api
+      .get(`/ecommerce/orders/${selectedOrderId}`)
+      .then((res) => {
+        if (!cancelled) setFetchedOrder(res.data.data);
+      })
+      .catch(() => {
+        // မတွေ့လျှင် sheet ကို ပိတ်
+        if (!cancelled) setSearchParams({}, { replace: true });
+      })
+      .finally(() => {
+        if (!cancelled) setOrderLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedOrderId, listedOrder, ordersLoading, fetchedOrder, setSearchParams]);
+
+  const selectedOrder =
+    listedOrder || (fetchedOrder?._id === selectedOrderId ? fetchedOrder : null);
+
+  const openOrder = (id: string) => setSearchParams({ order: id });
+  const closeOrder = useCallback(() => setSearchParams({}, { replace: true }), [setSearchParams]);
+
+  const visibleOrders = useMemo(() => {
+    if (filter === "active") return orders.filter((o) => ACTIVE_STATUSES.includes(o.status));
+    if (filter === "done") return orders.filter((o) => !ACTIVE_STATUSES.includes(o.status));
+    return orders;
+  }, [orders, filter]);
+
+  const hasMore = pagination ? pagination.currentPage < pagination.totalPages : false;
 
   if (loading) {
     return (
@@ -164,240 +220,144 @@ export default function Profile() {
     );
   }
 
+  const defaultAddress =
+    profile.addresses?.find((a) => a.isDefault) || profile.addresses?.[0];
+  const addressText = defaultAddress
+    ? [defaultAddress.addressLine, defaultAddress.city].filter(Boolean).join(", ")
+    : [profile.address, profile.township].filter(Boolean).join(", ");
+  const initial = (profile.name || "?").trim().charAt(0).toUpperCase();
+
   return (
-    <div className="bg-[#f8f9fa] min-h-screen pb-20 font-ChivoMono">
+    <div className="bg-[#F8F9FA] min-h-screen pb-20 font-ChivoMono">
       {/* Header */}
-      <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-md px-4 py-4 flex items-center gap-4 border-b border-gray-100">
+      <div className="sticky top-0 z-50 bg-white/90 backdrop-blur-md px-2 py-2 flex items-center gap-1 border-b border-gray-100">
         <button
           onClick={() => navigate(-1)}
-          className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+          aria-label="နောက်သို့"
+          className="w-11 h-11 flex items-center justify-center hover:bg-gray-100 rounded-full transition-colors"
         >
-          <ArrowLeft className="w-6 h-6 text-gray-800" />
+          <ArrowLeft className="w-5 h-5 text-gray-800" />
         </button>
-        <h1 className="text-sm font-bold text-gray-800">Profile</h1>
+        <h1 className="text-[15px] font-bold text-[#1A1A1A]">ကိုယ်ရေးအချက်အလက်</h1>
       </div>
 
-      <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
-        {/* Profile Card */}
-        <div className="bg-white rounded-[32px] p-6 shadow-sm border border-gray-50">
-          <div className="flex items-center gap-4">
-            <div className="w-16 h-16 md:w-20 md:h-20 bg-primary/10 rounded-full flex items-center justify-center shrink-0">
-              <User className="w-8 h-8 md:w-10 md:h-10 text-primary" />
-            </div>
-            <div className="space-y-1">
-              <h2 className="text-lg md:text-xl font-bold text-gray-900">
-                {profile.name}
-              </h2>
-              <p className="text-gray-500 text-sm">{profile.phone}</p>
-              <div className="flex items-center gap-1 text-gray-400 text-[11px]">
-                <Clock className="w-3 h-3" />
-                <span>Member since {formatDate(profile.createdAt)}</span>
-              </div>
-            </div>
+      <div className="max-w-2xl mx-auto px-4 py-4 space-y-6">
+        {/* Profile — avatar + အမည် + ဖုန်း + လိပ်စာ */}
+        <section className="flex items-start gap-3.5 bg-white rounded-2xl border border-gray-100 p-4">
+          <div className="w-12 h-12 rounded-full bg-[#007FFF] text-white flex items-center justify-center text-[20px] font-bold shrink-0">
+            {initial}
           </div>
-        </div>
+          <div className="flex-1 min-w-0">
+            <h2 className="text-[15px] font-bold text-[#1A1A1A] break-words">{profile.name}</h2>
+            <p className="text-[13px] text-gray-500">{profile.phone}</p>
+            {addressText && (
+              <p className="mt-1 flex items-start gap-1 text-[12px] text-gray-500 break-words">
+                <MapPin className="w-3.5 h-3.5 shrink-0 mt-0.5 text-gray-400" />
+                <span className="min-w-0">{addressText}</span>
+              </p>
+            )}
+          </div>
+        </section>
 
-        {/* Addresses */}
-        {(profile.addresses && profile.addresses.length > 0) ? (
-          <div className="bg-white rounded-[32px] p-6 shadow-sm border border-gray-50 space-y-4">
-            <h3 className="font-bold text-gray-800 text-sm flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-primary" />
-              လိပ်စာများ
-            </h3>
-            <div className="space-y-3">
-              {profile.addresses.map((addr, index) => (
-                <div
-                  key={index}
-                  className="bg-gray-50 rounded-2xl p-4 border border-gray-100"
+        {/* Order history */}
+        <section className="space-y-3">
+          <div className="flex items-baseline justify-between">
+            <h3 className="text-[15px] font-bold text-[#1A1A1A]">မှာယူမှုမှတ်တမ်း</h3>
+            {pagination && (
+              <span className="text-[12px] text-gray-500">{pagination.totalItems} ခု</span>
+            )}
+          </div>
+
+          {orders.length > 0 && (
+            <div role="tablist" className="grid grid-cols-3 gap-1 p-1 bg-gray-100 rounded-xl">
+              {FILTERS.map((f) => (
+                <button
+                  key={f.key}
+                  role="tab"
+                  aria-selected={filter === f.key}
+                  onClick={() => setFilter(f.key)}
+                  className={`min-h-[40px] rounded-lg text-[13px] font-bold transition-colors ${
+                    filter === f.key
+                      ? "bg-white text-[#007FFF] shadow-sm"
+                      : "text-gray-500 hover:text-gray-700"
+                  }`}
                 >
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="font-bold text-gray-800 text-sm">
-                      {addr.label}
-                    </span>
-                    {addr.isDefault && (
-                      <span className="bg-primary/10 text-primary text-[9px] font-bold px-2 py-0.5 rounded-full">
-                        Default
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-gray-500 text-[13px]">
-                    {addr.addressLine}, {addr.city}
-                  </p>
-                </div>
+                  {f.label}
+                </button>
               ))}
             </div>
-          </div>
-        ) : (profile.address || profile.township) ? (
-          <div className="bg-white rounded-[32px] p-6 shadow-sm border border-gray-50 space-y-4">
-            <h3 className="font-bold text-gray-800 text-sm flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-primary" />
-              လိပ်စာ
-            </h3>
-            <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100">
-              <p className="text-gray-700 text-[13px]">
-                {[profile.address, profile.township].filter(Boolean).join(", ")}
-              </p>
-            </div>
-          </div>
-        ) : null}
-
-        {/* Order History */}
-        <div className="bg-white rounded-[32px] p-6 shadow-sm border border-gray-50 space-y-4">
-          <h3 className="font-bold text-gray-800 text-sm flex items-center gap-2">
-            <Package className="w-4 h-4 text-primary" />
-            မှာယူမှုမှတ်တမ်း
-          </h3>
+          )}
 
           {ordersLoading && orders.length === 0 ? (
-            <div className="flex items-center justify-center py-10">
-              <div className="text-primary font-bold animate-pulse text-sm">
-                မှာယူမှုများ ရှာဖွေနေပါသည်...
-              </div>
+            <div className="space-y-2.5">
+              {[0, 1, 2].map((i) => (
+                <div key={i} className="h-[104px] bg-white rounded-2xl border border-gray-100 animate-pulse" />
+              ))}
             </div>
           ) : orders.length === 0 ? (
-            <div className="py-10 text-center space-y-3">
-              <div className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center mx-auto">
-                <Package className="w-6 h-6 text-gray-300" />
-              </div>
-              <p className="text-gray-400 text-sm">
-                မှာယူမှုမှတ်တမ်း မရှိသေးပါ
-              </p>
+            <div className="py-10 text-center space-y-3 bg-white rounded-2xl border border-gray-100">
+              <Package className="w-8 h-8 text-gray-300 mx-auto" />
+              <p className="text-[13px] text-gray-500">မှာယူမှုမှတ်တမ်း မရှိသေးပါ</p>
               <Link
                 to="/products"
-                className="inline-block bg-primary text-white px-5 py-2 rounded-xl font-bold text-xs"
+                className="inline-flex items-center min-h-[44px] bg-[#007FFF] text-white px-5 rounded-xl font-bold text-[13px]"
               >
                 ဆေးဝါးများကြည့်မယ်
               </Link>
             </div>
           ) : (
             <>
-              <div className="space-y-3">
-                {orders.map((order) => (
-                  <div
-                    key={order._id}
-                    className="bg-gray-50 rounded-2xl p-4 border border-gray-100 space-y-3"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono font-bold text-gray-800 text-[12px]">
-                          {order.orderNumber}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        {order.isEdited && (
-                          <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 border border-amber-200 flex items-center gap-1">
-                            <AlertTriangle className="w-2.5 h-2.5" />
-                            ပြင်ဆင်ထားသည်
-                          </span>
-                        )}
-                        <span
-                          className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${statusStyles[order.status] || "bg-gray-100 text-gray-600"}`}
-                        >
-                          {order.status}
-                        </span>
-                        <span
-                          className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${paymentStatusStyles[order.paymentStatus] || "bg-gray-50 text-gray-500"}`}
-                        >
-                          {order.paymentStatus}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="text-[11px] text-gray-400">
-                      {formatDateTime(order.createdAt)}
-                    </div>
-
-                    <div className="space-y-1.5">
-                      {(order.products || []).slice(0, 3).map((p) => (
-                        <div
-                          key={p._id}
-                          className="flex items-center justify-between text-[12px]"
-                        >
-                          <span className="text-gray-700 truncate max-w-[180px] md:max-w-[300px]">
-                            {p.productName}
-                            <span className="text-gray-400">
-                              {" "}
-                              × {p.quantity} {p.unit}
-                            </span>
-                            {p.originalQuantity != null && p.originalQuantity > p.quantity && (
-                              <span className="text-amber-600 font-semibold text-[10px] ml-1.5 inline-block">
-                                (မူလ: {p.originalQuantity} {p.unit})
-                              </span>
-                            )}
-                          </span>
-                          <span className="font-bold text-gray-800 font-mono">
-                            {p.subtotal.toLocaleString()}
-                          </span>
-                        </div>
-                      ))}
-                      {(order.products || []).length > 3 && (
-                        <p className="text-[10px] text-gray-400">
-                          + {(order.products || []).length - 3} items more
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="border-t border-gray-200 pt-2 flex items-center justify-between">
-                      <span className="text-[12px] text-gray-500 font-bold">
-                        စုစုပေါင်း
-                      </span>
-                      <span className="text-primary font-bold text-[14px] font-mono">
-                        {order.totalAmount.toLocaleString()} MMK
-                      </span>
-                    </div>
-
-                    {order.note && (
-                      <div
-                        className={`rounded-2xl p-3 text-[11px] md:text-[12px] space-y-1 ${
-                          order.isEdited ||
-                          order.note.includes("⚠️") ||
-                          order.note.includes("ပြင်ဆင်") ||
-                          order.note.includes("ပစ္စည်းလက်ကျန်")
-                            ? "bg-amber-50 border border-amber-200 text-amber-900"
-                            : "bg-yellow-50 text-yellow-700"
-                        }`}
-                      >
-                        <div className="flex items-center gap-1.5 font-bold text-amber-800">
-                          <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-                          <span>အော်ဒါမှတ်ချက် / အသိပေးချက်:</span>
-                        </div>
-                        <p className="whitespace-pre-line leading-relaxed pl-5 font-medium">
-                          {order.note}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-
-              {/* Pagination */}
-              {pagination && pagination.totalPages > 1 && (
-                <div className="flex items-center justify-center gap-4 pt-2">
-                  <button
-                    onClick={() => setPage((p) => Math.max(1, p - 1))}
-                    disabled={page === 1 || ordersLoading}
-                    className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-gray-200 text-[12px] font-bold text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
-                  >
-                    <ChevronLeft className="w-4 h-4" /> Prev
-                  </button>
-                  <span className="text-[12px] text-gray-500 font-bold">
-                    Page {pagination.currentPage} of {pagination.totalPages}
-                  </span>
-                  <button
-                    onClick={() =>
-                      setPage((p) => Math.min(pagination.totalPages, p + 1))
-                    }
-                    disabled={page === pagination.totalPages || ordersLoading}
-                    className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-gray-200 text-[12px] font-bold text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
-                  >
-                    Next <ChevronRight className="w-4 h-4" />
-                  </button>
+              {visibleOrders.length === 0 ? (
+                <p className="py-8 text-center text-[13px] text-gray-500">
+                  {filter === "active"
+                    ? "လုပ်ဆောင်ဆဲ အော်ဒါ မရှိပါ"
+                    : "ပြီးဆုံးသော အော်ဒါ မရှိသေးပါ"}
+                </p>
+              ) : (
+                <div className="space-y-2.5">
+                  {visibleOrders.map((order) => (
+                    <OrderCard key={order._id} order={order} onOpen={() => openOrder(order._id)} />
+                  ))}
                 </div>
+              )}
+
+              {hasMore && (
+                <button
+                  onClick={() => setPage((p) => p + 1)}
+                  disabled={ordersLoading}
+                  className="w-full min-h-[44px] rounded-xl border border-gray-200 bg-white text-[13px] font-bold text-[#007FFF] hover:bg-blue-50 disabled:opacity-50 transition-colors"
+                >
+                  {ordersLoading ? "ရယူနေပါသည်..." : "နောက်ထပ် ကြည့်မယ်"}
+                </button>
               )}
             </>
           )}
-        </div>
+        </section>
+
+        {/* Logout — navbar တွင် မှားနှိပ်မိလွယ်၍ ဤနေရာသို့ ရွှေ့ထား */}
+        <button
+          onClick={() => setIsLogoutModalOpen(true)}
+          className="w-full min-h-[48px] flex items-center justify-center gap-2 bg-white border border-red-200 text-red-600 hover:bg-red-50 rounded-2xl font-bold text-[13px] transition-colors"
+        >
+          <LogOut className="w-4 h-4" />
+          ထွက်မယ် (Logout)
+        </button>
       </div>
+
+      <OrderDetailSheet
+        order={selectedOrderId ? selectedOrder : null}
+        loading={Boolean(selectedOrderId) && !selectedOrder && (orderLoading || ordersLoading)}
+        onClose={closeOrder}
+      />
+
+      <LogoutModal
+        isOpen={isLogoutModalOpen}
+        onClose={() => setIsLogoutModalOpen(false)}
+        onConfirm={() => {
+          authService.logout();
+          window.location.replace("/");
+        }}
+      />
     </div>
   );
 }
