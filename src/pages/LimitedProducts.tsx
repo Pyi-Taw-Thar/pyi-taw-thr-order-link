@@ -89,7 +89,7 @@ export default function LimitedProducts() {
         </div>
       </div>
 
-      <div className="mx-auto py-6 space-y-4">
+      <div className="mx-auto px-4 py-6 space-y-4">
         <div className="flex items-center gap-2 bg-yellow-50 rounded-2xl p-4 border border-yellow-100">
           <AlertTriangle className="w-5 h-5 text-yellow-600 shrink-0" />
           <p className="text-yellow-700 text-[12px] font-medium">
@@ -137,6 +137,9 @@ export default function LimitedProducts() {
                     data={product}
                     showBadge
                     showPrice
+                    unit={product.prices[0]?.unit}
+                    maxPerUser={product.maxPerUser}
+                    baseUnit={product.baseUnit}
                     isOutOfStock={product.isOutOfStock}
                   />
                 ))}

@@ -26,6 +26,9 @@ export interface Product {
   images?: ProductImage[];
   quantity?: number;
   isOutOfStock?: boolean;
+  baseUnit?: string;
+  // တစ်ယောက်လျှင် ဝယ်ခွင့် (base unit ဖြင့်; customer tier multiplier မပါ)
+  maxPerUser?: number | null;
 }
 
 export interface ApiProductItem {
@@ -44,5 +47,6 @@ export interface ApiProductItem {
     uomConversions?: UomConversion[];
     wholesalePrices: { unit: string; quantity: number; price: number }[];
     images: ProductImage[];
+    ecommerceMaxPerUser?: number | null;
   };
 }

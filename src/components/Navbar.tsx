@@ -1,17 +1,13 @@
-import { ShoppingCart, LogOut, User, Home, Bell } from "lucide-react";
+import { ShoppingCart, User, Home, Bell } from "lucide-react";
 
 import { useState, useEffect } from "react";
 import { useCart } from "../context/CartContext";
 import { Link, useNavigate } from "react-router-dom";
-import LogoutModal from "./LogoutModal";
 import NotificationModal from "./NotificationModal";
-import authService from "../services/auth.service";
 import api from "../services/axios";
 
 export default function Navbar() {
   const navigate = useNavigate();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
   const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
   const { cartCount } = useCart();
@@ -36,11 +32,6 @@ export default function Navbar() {
     fetchUnreadCount();
   }, []);
 
-  const handleLogout = () => {
-    authService.logout();
-    window.location.reload();
-  };
-
   return (
     <nav className="bg-white border-b border-gray-100 sticky top-0 z-50 py-3">
       <div className="container mx-auto px-4">
@@ -52,17 +43,8 @@ export default function Navbar() {
             <Home className="w-5 h-5 md:w-6 md:h-6 text-white" />
           </button>
 
+          {/* Logout ကို bell ဘေးတွင် မှားနှိပ်မိလွယ်၍ Profile page သို့ ရွှေ့ထား */}
           <div className="flex items-center space-x-2 md:space-x-4">
-            <button
-              onClick={() => setIsLogoutModalOpen(true)}
-              className="relative group focus:outline-none"
-              title="Logout"
-            >
-              <div className="w-10 h-10 md:w-12 md:h-12 bg-white border border-gray-100 rounded-xl flex items-center justify-center hover:border-red-100 hover:bg-red-50 transition-all">
-                <LogOut className="w-5 h-5 md:w-6 md:h-6 text-gray-500 group-hover:text-red-500 transition-colors" />
-              </div>
-            </button>
-
             <button
               onClick={() => setIsNotificationModalOpen(true)}
               className="relative group focus:outline-none"
@@ -97,56 +79,7 @@ export default function Navbar() {
           </div>
         </div>
 
-        {isMenuOpen && (
-          <div className="mt-4 pb-4 md:hidden">
-            <div className="flex flex-col space-y-3">
-              <Link
-                to="/"
-                onClick={() => setIsMenuOpen(false)}
-                className="text-gray-700 font-medium text-[14px] md:text-base hover:text-primary transition-colors"
-              >
-                Home
-              </Link>
-              <Link
-                to="/products"
-                onClick={() => setIsMenuOpen(false)}
-                className="text-gray-700 font-medium text-[14px] md:text-base hover:text-primary transition-colors"
-              >
-                Products
-              </Link>
-              <Link
-                to="/cart"
-                onClick={() => setIsMenuOpen(false)}
-                className="text-gray-700 font-medium text-[14px] md:text-base hover:text-primary transition-colors"
-              >
-                Cart
-              </Link>
-              <Link
-                to="/profile"
-                onClick={() => setIsMenuOpen(false)}
-                className="text-gray-700 font-medium text-[14px] md:text-base hover:text-primary transition-colors"
-              >
-                Profile
-              </Link>
-              <button
-                onClick={() => {
-                  setIsMenuOpen(false);
-                  setIsLogoutModalOpen(true);
-                }}
-                className="text-red-600 font-medium text-[14px] md:text-base hover:bg-red-50 p-2 rounded-lg transition-all flex items-center w-full"
-              >
-                <LogOut className="w-4 h-4 mr-2" />
-                Logout (ထွက်မယ်)
-              </button>
-            </div>
-          </div>
-        )}
       </div>
-      <LogoutModal
-        isOpen={isLogoutModalOpen}
-        onClose={() => setIsLogoutModalOpen(false)}
-        onConfirm={handleLogout}
-      />
       <NotificationModal
         isOpen={isNotificationModalOpen}
         onClose={() => setIsNotificationModalOpen(false)}

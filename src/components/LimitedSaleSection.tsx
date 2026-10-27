@@ -82,6 +82,10 @@ export default function LimitedSaleSection() {
                 price={product.price}
                 data={product}
                 showBadge
+                showPrice
+                unit={product.prices[0]?.unit}
+                maxPerUser={product.maxPerUser}
+                baseUnit={product.baseUnit}
                 isOutOfStock={product.isOutOfStock}
               />
             ))}

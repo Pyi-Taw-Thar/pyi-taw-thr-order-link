@@ -6,6 +6,8 @@ import {
   Info,
   Package,
   Tag,
+  Pill,
+  AlertTriangle,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
@@ -14,7 +16,6 @@ import { findBestTierIndex } from "../utils/pricing";
 import { mapApiProduct } from "../utils/mapProduct";
 import { Product } from "./products/types";
 import api from "../services/axios";
-import paracetamolImg from "../assets/images/products/paracetamol.png";
 
 export default function ProductDetail() {
   const { id } = useParams<{ id: string }>();
@@ -163,11 +164,19 @@ export default function ProductDetail() {
             isOutOfStock ? "opacity-75 grayscale-[20%]" : ""
           }`}
         >
-          <img
-            src={product.images?.[0]?.url || paracetamolImg}
-            alt={product.name}
-            className="w-full h-full object-contain opacity-90 transition-transform active:scale-110 duration-500"
-          />
+          {product.images?.[0]?.url ? (
+            <img
+              src={product.images[0].url}
+              alt={product.name}
+              className="w-full h-full object-contain opacity-90 transition-transform active:scale-110 duration-500"
+            />
+          ) : (
+            // ပုံမရှိလျှင် ဆေးတစ်မျိုးမျိုးကို ကိုယ်စားမပြုသော ယေဘုယျ placeholder
+            <div className="w-full h-full bg-gray-50 flex flex-col items-center justify-center gap-3 text-gray-300">
+              <Pill className="w-20 h-20" strokeWidth={1.25} />
+              <span className="text-sm font-medium text-gray-400">ပုံ မရှိသေးပါ</span>
+            </div>
+          )}
         </div>
 
         <div className="bg-white rounded-[32px] p-6 shadow-sm border border-gray-50 space-y-6">
@@ -188,20 +197,26 @@ export default function ProductDetail() {
           </div>
 
           {isOutOfStock && (
-            <div className="bg-red-50 border border-red-200 text-red-600 text-sm font-semibold px-4 py-3 rounded-2xl flex items-center justify-between">
-              <span>ပစ္စည်းလက်ကျန် ပြတ်နေပါသည်</span>
-              <span className="text-xs uppercase font-bold tracking-wider bg-red-100 px-2 py-0.5 rounded">
-                Out of Stock
-              </span>
+            <div className="bg-red-50 border border-red-200 text-red-600 text-sm font-semibold px-4 py-3 rounded-2xl">
+              ပစ္စည်းလက်ကျန် ပြတ်နေပါသည်
             </div>
           )}
+
+          {product.maxPerUser ? (
+            <div className="bg-amber-50 border border-amber-200 text-amber-800 text-xs font-medium px-4 py-3 rounded-2xl flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 shrink-0" />
+              <span>
+                အကန့်အသတ်ဖြင့်သာ — တစ်ယောက်လျှင် အများဆုံး {product.maxPerUser.toLocaleString()} {product.baseUnit}
+              </span>
+            </div>
+          ) : null}
 
           <div className="grid grid-cols-2 gap-4">
             <div className="bg-gray-50 rounded-2xl p-4 space-y-1">
               <div className="flex items-center gap-1.5 text-gray-500">
                 <Tag className="w-3.5 h-3.5" />
                 <span className="text-[10px] font-bold uppercase tracking-wider">
-                  Brand
+                  အမှတ်တံဆိပ်
                 </span>
               </div>
               <p className="font-bold text-[13px] text-gray-800 truncate">
@@ -212,7 +227,7 @@ export default function ProductDetail() {
               <div className="flex items-center gap-1.5 text-gray-500">
                 <Package className="w-3.5 h-3.5" />
                 <span className="text-[10px] font-bold uppercase tracking-wider">
-                  Category
+                  အမျိုးအစား
                 </span>
               </div>
               <p className="font-bold text-[13px] text-gray-800 truncate">
@@ -224,7 +239,7 @@ export default function ProductDetail() {
           {product.chemicalNames && product.chemicalNames.length > 0 && (
             <div className="bg-gray-50 rounded-2xl p-4 space-y-2">
               <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500 block">
-                ဓာတုအမည်များ (Chemical Names)
+                ဓာတုအမည်များ
               </span>
               <div className="flex flex-wrap gap-1.5">
                 {product.chemicalNames.map((chem, idx) => (

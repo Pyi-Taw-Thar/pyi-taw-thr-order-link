@@ -86,7 +86,15 @@ export default function Cart() {
                       <div className="flex items-baseline gap-1">
                         <span className="text-primary font-bold text-[16px] md:text-xl font-mono">{item.price.toLocaleString()}</span>
                         <span className="text-primary text-[10px] font-bold">MMK</span>
+                        <span className="text-gray-400 text-[10px]">/ {item.unit}</span>
                       </div>
+                      {/* Line subtotal */}
+                      <p className="text-[11px] md:text-sm text-gray-500 font-mono">
+                        {item.quantity} × {item.price.toLocaleString()} ={" "}
+                        <span className="font-bold text-gray-800">
+                          {(item.quantity * item.price).toLocaleString()} MMK
+                        </span>
+                      </p>
                     </div>
                   </div>
                   <button
@@ -136,7 +144,6 @@ export default function Cart() {
                   </p> */}
                 </div>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-gray-400 text-xl md:text-3xl font-light">-</span>
                   <div className="flex items-baseline gap-1">
                     <span className="text-primary font-bold text-xl md:text-4xl font-mono">{totalPrice.toLocaleString()}</span>
                     <span className="text-primary text-[10px] md:text-xs font-bold">MMK</span>

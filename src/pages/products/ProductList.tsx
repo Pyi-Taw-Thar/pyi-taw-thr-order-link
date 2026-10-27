@@ -30,7 +30,7 @@ export default function ProductList({
     if (!expandedProductId) return;
     const product = products.find((p) => p.id === expandedProductId);
     if (!product) return;
-    const qty = quantities[expandedProductId] || 0;
+    const qty = quantities[expandedProductId] ?? 1;
     const currentUnit = product.prices[selectedVariantIndex]?.unit;
     if (!currentUnit || qty <= 0) return;
     const bestIndex = findBestTierIndex(product.prices, currentUnit, qty);
@@ -51,7 +51,7 @@ export default function ProductList({
   const updateQuantity = (id: string, delta: number) => {
     setQuantities((prev) => ({
       ...prev,
-      [id]: Math.max(0, (prev[id] || 0) + delta),
+      [id]: Math.max(1, (prev[id] ?? 1) + delta),
     }));
   };
 
@@ -59,7 +59,7 @@ export default function ProductList({
     const num = parseInt(value);
     setQuantities((prev) => ({
       ...prev,
-      [id]: isNaN(num) ? 0 : Math.max(0, num),
+      [id]: isNaN(num) ? 1 : Math.max(1, num),
     }));
   };
 
@@ -70,7 +70,7 @@ export default function ProductList({
   };
 
   const handleAddToCart = (product: Product) => {
-    const qty = quantities[product.id] || 0;
+    const qty = quantities[product.id] ?? 1;
     if (qty > 0) {
       const selectedVariant =
         product.prices[selectedVariantIndex] || product.prices[0];
@@ -85,16 +85,16 @@ export default function ProductList({
         },
         qty,
       );
-      setQuantities((prev) => ({ ...prev, [product.id]: 0 }));
+      setQuantities((prev) => ({ ...prev, [product.id]: 1 }));
       setExpandedProductId(null);
     }
   };
 
   return (
-    <div className="bg-[#f8f9fa] container mx-auto min-h-screen pb-20 font-ChivoMono">
+    <div className="bg-[#f8f9fa] max-w-3xl mx-auto min-h-screen pb-20 font-ChivoMono">
       <SearchHeader />
 
-      <div className="py-6 space-y-6">
+      <div className="px-4 py-6 space-y-6">
         <div className="flex items-start justify-between">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
@@ -132,7 +132,7 @@ export default function ProductList({
               product={product}
               expanded={expandedProductId === product.id}
               selectedVariantIndex={selectedVariantIndex}
-              quantity={quantities[product.id] || 0}
+              quantity={quantities[product.id] ?? 1}
               cartQty={getProductCartQty(product.id)}
               onToggle={() => toggleProduct(product.id)}
               onVariantSelect={setSelectedVariantIndex}

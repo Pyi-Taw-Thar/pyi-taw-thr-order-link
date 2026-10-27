@@ -9,6 +9,11 @@ interface ProductCardProps {
   buttonText?: string;
   data?: any;
   isOutOfStock?: boolean;
+  // စျေးနှုန်း၏ unit (ဥပမာ ပုံး) — စျေးဘေးတွင် "/ ပုံး" ပြရန်
+  unit?: string;
+  // တစ်ယောက်လျှင် ဝယ်ခွင့် (base unit ဖြင့်)
+  maxPerUser?: number | null;
+  baseUnit?: string;
 }
 
 export default function ProductCard({
@@ -20,6 +25,9 @@ export default function ProductCard({
   buttonText,
   data,
   isOutOfStock = false,
+  unit,
+  maxPerUser,
+  baseUnit,
 }: ProductCardProps) {
   const navigate = useNavigate();
 
@@ -38,14 +46,22 @@ export default function ProductCard({
             ပစ္စည်းပြတ်နေပါသည်
           </span>
         ) : showBadge ? (
-          <span className="inline-block bg-yellow-100 text-[#BFGA02] text-[9px] md:text-base font-bold px-2 py-1 rounded w-fit">
-            အကန့်သတ်ဖြင့်သာ
-          </span>
+          <div className="space-y-1">
+            <span className="inline-block bg-yellow-100 text-amber-700 text-[9px] md:text-xs font-bold px-2 py-1 rounded w-fit">
+              အကန့်သတ်ဖြင့်သာ
+            </span>
+            {maxPerUser ? (
+              <p className="text-[10px] md:text-xs text-amber-700">
+                တစ်ယောက်လျှင် အများဆုံး {maxPerUser.toLocaleString()} {baseUnit}
+              </p>
+            ) : null}
+          </div>
         ) : null}
       </div>
       {showPrice && (
         <p className="text-primary font-bold text-[13px] font-mono">
           {price.toLocaleString()} <span className="text-[9px]">MMK</span>
+          {unit ? <span className="text-[10px] text-gray-500 font-sans"> / {unit}</span> : null}
         </p>
       )}
       <button
