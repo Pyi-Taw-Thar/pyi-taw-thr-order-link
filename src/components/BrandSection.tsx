@@ -1,6 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
-import api from "../services/axios";
+import { useBrands } from "../services/productQueries";
 
 interface Brand {
   id: string | number;
@@ -9,25 +8,8 @@ interface Brand {
 
 export default function BrandSection() {
   const navigate = useNavigate();
-  const [brands, setBrands] = useState<Brand[]>([]);
-
-  useEffect(() => {
-    const fetchBrands = async () => {
-      try {
-        const response = await api.get("/ecommerce/products/brands");
-        const data: string[] = response.data.data;
-        const formatted = data.map((item, index) => ({
-          id: index + 1,
-          title: item,
-        }));
-        setBrands(formatted);
-      } catch (error) {
-        console.error("Error fetching brands:", error);
-      }
-    };
-
-    fetchBrands();
-  }, []);
+  const { data: brandNames = [] } = useBrands();
+  const brands: Brand[] = brandNames.map((item, index) => ({ id: index + 1, title: item }));
 
   return (
     <section className="container mx-auto py-8 md:py-20">

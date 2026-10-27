@@ -1,9 +1,6 @@
 import { ShoppingCart } from "lucide-react";
-import { useState, useEffect, useMemo } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import api from "../services/axios";
-import { ApiProductItem } from "./products/types";
-import { mapApiProduct } from "../utils/mapProduct";
+import { useBrands, useProducts } from "../services/productQueries";
 import BrandGrid from "./products/BrandGrid";
 import ProductList from "./products/ProductList";
 
@@ -13,53 +10,11 @@ export default function Products() {
   const selectedSubCategory = searchParams.get("subCategory") || null;
   const selectedBrand = searchParams.get("brand") || null;
 
-  const [brands, setBrands] = useState<string[]>([]);
-  const [products, setProducts] = useState<ApiProductItem[]>([]);
-  const [prodLoading, setProdLoading] = useState(false);
-
-  // Fetch brands matching the subCategory (or all brands if no subCategory)
-  useEffect(() => {
-    if (selectedBrand) return;
-    const fetchBrands = async () => {
-      try {
-        const response = await api.get("/ecommerce/products/brands", {
-          params: { subCategory: selectedSubCategory }
-        });
-        setBrands(response.data.data);
-      } catch (error) {
-        console.error("Error fetching brands:", error);
-      }
-    };
-    fetchBrands();
-  }, [selectedBrand, selectedSubCategory]);
-
-  // Fetch all products under the selected brand directly (skip category selection)
-  useEffect(() => {
-    if (!selectedBrand) {
-      setProducts([]);
-      return;
-    }
-    const fetchProducts = async () => {
-      setProdLoading(true);
-      try {
-        const params: Record<string, string> = { brand: selectedBrand };
-        if (selectedSubCategory) {
-          params.subCategory = selectedSubCategory;
-        }
-        const response = await api.get("/ecommerce/products", { params });
-        setProducts(response.data.data);
-      } catch (error) {
-        console.error("Error fetching products:", error);
-      } finally {
-        setProdLoading(false);
-      }
-    };
-    fetchProducts();
-  }, [selectedBrand, selectedSubCategory]);
-
-  const formattedProducts = useMemo(
-    () => products.map(mapApiProduct),
-    [products],
+  // Cache (TanStack Query) မှ ယူ၍ detail မှ back ပြန်လာလျှင် loading မပြန်ပေါ်
+  const { data: brands = [] } = useBrands(selectedSubCategory, { enabled: !selectedBrand });
+  const { data: formattedProducts = [], isPending: prodLoading } = useProducts(
+    { brand: selectedBrand, subCategory: selectedSubCategory },
+    { enabled: Boolean(selectedBrand) },
   );
 
   const handleBrandSelect = (brandName: string) => {
@@ -106,7 +61,7 @@ export default function Products() {
     );
   }
 
-  if (products.length === 0) {
+  if (formattedProducts.length === 0) {
     return (
       <div className="bg-[#f8f9fa] min-h-screen flex flex-col items-center justify-center pb-20 font-ChivoMono">
         <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">

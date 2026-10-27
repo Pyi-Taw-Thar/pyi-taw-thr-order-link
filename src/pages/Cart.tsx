@@ -2,12 +2,15 @@ import { ShoppingCart, Trash2, Plus, Minus, CheckCircle, XCircle } from 'lucide-
 import { useCart } from '../context/CartContext';
 import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import axios from 'axios';
 import api from '../services/axios';
 import authService from '../services/auth.service';
 
 export default function Cart() {
   const navigate = useNavigate();
   const { cartItems, updateQuantity, setQuantity, removeFromCart, clearCart, totalPrice } = useCart();
+  const queryClient = useQueryClient();
   const [isSuccess, setIsSuccess] = useState(false);
   const [orderLoading, setOrderLoading] = useState(false);
   const [orderError, setOrderError] = useState('');
@@ -34,8 +37,11 @@ export default function Cart() {
       await api.post('/ecommerce/order', { products });
       setIsSuccess(true);
       setTimeout(() => clearCart(), 500);
-    } catch (err: any) {
-      const msg = err?.response?.data?.message || 'အော်ဒါတင်ရာတွင် ပြဿနာရှိနေပါသည်။ နောက်မှ ထပ်ကြိုးစားပါ။';
+      // လက်ကျန် ပြောင်းသွား၍ product cache ကို နောက်တစ်ကြိမ်ကြည့်လျှင် အသစ်ယူစေ
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.invalidateQueries({ queryKey: ['product'] });
+    } catch (err) {
+      const msg = (axios.isAxiosError(err) && err.response?.data?.message) || 'အော်ဒါတင်ရာတွင် ပြဿနာရှိနေပါသည်။ နောက်မှ ထပ်ကြိုးစားပါ။';
       setOrderError(msg);
     } finally {
       setOrderLoading(false);

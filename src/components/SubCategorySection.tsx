@@ -1,27 +1,9 @@
 import { useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
-import api from "../services/axios";
+import { useSubCategories } from "../services/productQueries";
 
 export default function SubCategorySection() {
   const navigate = useNavigate();
-  const [subCategories, setSubCategories] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchSubCategories = async () => {
-      try {
-        const response = await api.get("/ecommerce/products/subcategories");
-        const data: string[] = response.data.data;
-        setSubCategories(data);
-      } catch (error) {
-        console.error("Error fetching sub categories:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchSubCategories();
-  }, []);
+  const { data: subCategories = [], isPending: loading } = useSubCategories();
 
   if (!loading && subCategories.length === 0) return null;
 

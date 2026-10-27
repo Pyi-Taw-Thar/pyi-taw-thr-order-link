@@ -1,51 +1,47 @@
 import { Search as SearchIcon, X, ArrowLeft, History, ShoppingCart, Plus, Minus, ChevronUp, ChevronDown } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
-import api from '../services/axios';
-import { ApiProductItem, Product } from './products/types';
-import { mapApiProduct } from '../utils/mapProduct';
+import { Product } from './products/types';
+import { useProducts } from '../services/productQueries';
 
 export default function Search() {
-  const [query, setQuery] = useState('');
+  // ရှာထားသောစာကို URL ?q= တွင်ထား၍ detail မှ back ပြန်လာလျှင် မပျောက်
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialQuery = searchParams.get('q') || '';
+  const [query, setQuery] = useState(initialQuery);
+  const [debouncedQuery, setDebouncedQuery] = useState(initialQuery);
   const [history, setHistory] = useState<string[]>([]);
   const [expandedProductId, setExpandedProductId] = useState<string | null>(null);
   const [selectedVariantIndex, setSelectedVariantIndex] = useState<number>(0);
   const [quantities, setQuantities] = useState<Record<string, number>>({});
-  const [results, setResults] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
   const { addToCart, cartItems } = useCart();
 
   useEffect(() => {
-    inputRef.current?.focus();
+    // back ပြန်လာ၍ ရှာထားသောစာ ရှိလျှင် keyboard မဖွင့်
+    if (!initialQuery) inputRef.current?.focus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Debounced search when query changes
+  // ရိုက်ပြီး 400ms ကြာမှ ရှာ (debounce) + URL ?q= ကို update
   useEffect(() => {
-    if (!query.trim()) {
-      setResults([]);
-      return;
-    }
-
-    const delayDebounce = setTimeout(async () => {
-      setLoading(true);
-      try {
-        const response = await api.get('/ecommerce/products', {
-          params: { search: query }
-        });
-        const items: ApiProductItem[] = response.data.data || [];
-        setResults(items.map(mapApiProduct));
-      } catch (error) {
-        console.error('Error fetching search results:', error);
-      } finally {
-        setLoading(false);
-      }
+    const delayDebounce = setTimeout(() => {
+      const q = query.trim();
+      setDebouncedQuery(q);
+      setSearchParams(q ? { q } : {}, { replace: true });
     }, 400);
-
     return () => clearTimeout(delayDebounce);
-  }, [query]);
+  }, [query, setSearchParams]);
+
+  const hasQuery = Boolean(debouncedQuery) && Boolean(query.trim());
+  const { data: searchData, isPending } = useProducts(
+    { search: debouncedQuery },
+    { enabled: Boolean(debouncedQuery) },
+  );
+  const results: Product[] = hasQuery ? searchData ?? [] : [];
+  const loading = Boolean(query.trim()) && (query.trim() !== debouncedQuery || isPending);
 
   const suggestions: Product[] = [];
 
@@ -59,7 +55,7 @@ export default function Search() {
     }
   };
 
-  const clearResults = () => setResults([]);
+  const clearResults = () => setQuery('');
 
   const clearHistory = () => setHistory([]);
 

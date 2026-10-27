@@ -1,41 +1,22 @@
 import { ArrowLeft, ShoppingCart, AlertTriangle, Search, X } from "lucide-react";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import api from "../services/axios";
 import ProductCard from "../components/ProductCard";
 
-import { ApiProductItem, Product } from "./products/types";
-import { mapApiProduct } from "../utils/mapProduct";
+import { Product } from "./products/types";
+import { useProducts } from "../services/productQueries";
 
 // Card ပေါ်တွင် ပြမည့်စျေး — base unit မပြသဖြင့် ပထမ unit စျေးကို သုံးသည်
 type LimitedProduct = Product & { price: number };
 
 export default function LimitedProducts() {
   const navigate = useNavigate();
-  const [products, setProducts] = useState<LimitedProduct[]>([]);
-  const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
-
-  useEffect(() => {
-    const fetchAll = async () => {
-      try {
-        const response = await api.get("/ecommerce/products", {
-          params: { limitedOnly: true },
-        });
-        const items: ApiProductItem[] = response.data.data;
-        const mapped = items.map((item) => {
-          const product = mapApiProduct(item);
-          return { ...product, price: product.prices[0]?.price ?? 0 };
-        });
-        setProducts(mapped);
-      } catch (error) {
-        console.error("Error fetching limited products:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchAll();
-  }, []);
+  const { data = [], isPending: loading } = useProducts({ limitedOnly: true });
+  const products: LimitedProduct[] = useMemo(
+    () => data.map((p) => ({ ...p, price: p.prices[0]?.price ?? 0 })),
+    [data],
+  );
 
   const filtered = useMemo(() => {
     if (!query.trim()) return products;

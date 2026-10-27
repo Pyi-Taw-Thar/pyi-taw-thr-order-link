@@ -13,9 +13,8 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import { findBestTierIndex } from "../utils/pricing";
-import { mapApiProduct } from "../utils/mapProduct";
+import { useProduct } from "../services/productQueries";
 import { Product } from "./products/types";
-import api from "../services/axios";
 
 export default function ProductDetail() {
   const { id } = useParams<{ id: string }>();
@@ -23,45 +22,21 @@ export default function ProductDetail() {
   const location = useLocation();
   const { addToCart, setQuantity: cartSetQuantity, cartItems } = useCart();
 
-  // List မှ ဝင်လာလျှင် state ကို ချက်ချင်းပြရန်သာ သုံးပြီး data အသစ်ကို အမြဲ fetch လုပ်သည်
-  const initialProduct: Product | null = location.state?.product ?? null;
-  const [product, setProduct] = useState<Product | null>(initialProduct);
+  // List cache (သို့) navigation state မှ ချက်ချင်းပြပြီး detail API ဖြင့် နောက်ကွယ်တွင် အသစ်ယူ
+  // (refresh / direct link တွင် API မှသာ ယူ)
+  const stateProduct: Product | null = location.state?.product ?? null;
+  const { data, isPending, isError } = useProduct(id);
+  const product: Product | null = data ?? (isError || isPending ? stateProduct : null);
+  const loading = Boolean(id) && isPending && !product;
   const [selectedVariantIndex, setSelectedVariantIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
-  const [loading, setLoading] = useState(!initialProduct);
 
+  // ဈေးနှုန်း tier အရေအတွက် ပြောင်းသွားပါက index range ကျော်မသွားစေရန်
   useEffect(() => {
-    if (!id) {
-      setLoading(false);
-      return;
+    if (product && selectedVariantIndex >= product.prices.length) {
+      setSelectedVariantIndex(0);
     }
-    let cancelled = false;
-    const fetchProduct = async () => {
-      try {
-        const response = await api.get("/ecommerce/products", {
-          params: { id },
-        });
-        const item = response.data.data?.[0];
-        if (cancelled) return;
-        const fresh = item ? mapApiProduct(item) : null;
-        setProduct(fresh);
-        // ဈေးနှုန်း tier အရေအတွက် ပြောင်းသွားပါက index range ကျော်မသွားစေရန်
-        if (fresh) {
-          setSelectedVariantIndex((i) => (i < fresh.prices.length ? i : 0));
-        }
-      } catch (error) {
-        console.error("Error fetching product:", error);
-        // state မှ data ရှိပြီးသားဆိုလျှင် ဆက်ပြထားမည်
-        if (!cancelled && !initialProduct) setProduct(null);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    };
-    fetchProduct();
-    return () => {
-      cancelled = true;
-    };
-  }, [id]);
+  }, [product, selectedVariantIndex]);
 
   useEffect(() => {
     if (product) {
