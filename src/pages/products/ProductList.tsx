@@ -1,5 +1,5 @@
-import { ArrowLeft } from "lucide-react";
-import { useState, useEffect } from "react";
+import { ArrowLeft, ArrowUpDown } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
 import { Product } from "./types";
@@ -25,6 +25,15 @@ export default function ProductList({
   const [expandedProductId, setExpandedProductId] = useState<string | null>(null);
   const [selectedVariantIndex, setSelectedVariantIndex] = useState(0);
   const [quantities, setQuantities] = useState<Record<string, number>>({});
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+
+  // ဆေးနာမည် A → Z / Z → A — အကြီးအသေး မခွဲ၊ ဂဏန်းကို တန်ဖိုးအတိုင်း (B2 < B12)
+  const sortedProducts = useMemo(() => {
+    const sorted = [...products].sort((a, b) =>
+      a.name.localeCompare(b.name, "en", { sensitivity: "base", numeric: true })
+    );
+    return sortDir === "asc" ? sorted : sorted.reverse();
+  }, [products, sortDir]);
 
   useEffect(() => {
     if (!expandedProductId) return;
@@ -95,8 +104,8 @@ export default function ProductList({
       <SearchHeader />
 
       <div className="px-4 py-6 space-y-6">
-        <div className="flex items-start justify-between">
-          <div className="space-y-1">
+        <div className="flex items-end justify-between gap-3">
+          <div className="space-y-1 min-w-0">
             <div className="flex items-center gap-2">
               <button
                 onClick={onBackToBrands}
@@ -123,10 +132,26 @@ export default function ProductList({
               </p>
             </div>
           </div>
+          {/* A → Z ⇄ Z → A ပြောင်းရန် */}
+          {products.length > 1 && (
+            <button
+              type="button"
+              onClick={() => setSortDir((d) => (d === "asc" ? "desc" : "asc"))}
+              aria-label={
+                sortDir === "asc"
+                  ? "ဆေးနာမည် A မှ Z စီထားသည် — Z မှ A သို့ ပြောင်းရန်"
+                  : "ဆေးနာမည် Z မှ A စီထားသည် — A မှ Z သို့ ပြောင်းရန်"
+              }
+              className="shrink-0 min-h-[44px] inline-flex items-center gap-1.5 whitespace-nowrap px-3.5 rounded-full border border-gray-200 bg-white text-[12px] md:text-[14px] font-bold text-gray-700 hover:border-blue-300 hover:text-primary focus-visible:ring-2 focus-visible:ring-blue-500 outline-none transition-colors"
+            >
+              {sortDir === "asc" ? "A → Z" : "Z → A"}
+              <ArrowUpDown className="w-4 h-4" />
+            </button>
+          )}
         </div>
 
         <div className="space-y-3 md:space-y-4">
-          {products.map((product) => (
+          {sortedProducts.map((product) => (
             <ProductRow
               key={product.id}
               product={product}
