@@ -8,6 +8,7 @@ import {
   Tag,
   Pill,
   AlertTriangle,
+  XCircle,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
@@ -160,20 +161,24 @@ export default function ProductDetail() {
               <span className="bg-blue-50 text-blue-600 text-[10px] font-bold px-2 py-1 rounded">
                 {product.code}
               </span>
-              {isOutOfStock && (
-                <span className="bg-red-50 text-red-500 border border-red-200 text-[10px] font-bold px-2 py-1 rounded">
-                  ပစ္စည်းပြတ်နေပါသည်
-                </span>
-              )}
             </div>
             <h2 className="text-xl font-bold text-gray-900 leading-tight">
               {product.name}
             </h2>
           </div>
 
+          {/* ပစ္စည်းပြတ်ကြောင်း ဤနေရာတစ်ခုတည်းတွင်သာ ပြ */}
           {isOutOfStock && (
-            <div className="bg-red-50 border border-red-200 text-red-600 text-sm font-semibold px-4 py-3 rounded-2xl">
-              ပစ္စည်းလက်ကျန် ပြတ်နေပါသည်
+            <div className="bg-red-50 border border-red-200 px-4 py-3 rounded-2xl flex items-start gap-2.5">
+              <XCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+              <div>
+                <p className="text-red-600 text-sm font-semibold">
+                  ပစ္စည်းလက်ကျန် ပြတ်နေပါသည်
+                </p>
+                <p className="text-red-500/90 text-xs mt-0.5">
+                  ပစ္စည်းပြန်ရောက်လျှင် ဝယ်ယူနိုင်ပါမည်
+                </p>
+              </div>
             </div>
           )}
 
@@ -280,6 +285,18 @@ export default function ProductDetail() {
 
       <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-gray-100 px-4 pt-3 pb-6 z-50 shadow-[0_-10px_40px_rgba(0,0,0,0.04)]">
         <div className="max-w-2xl mx-auto space-y-4">
+          {isOutOfStock ? (
+            // ဝယ်မရ၍ ကျသင့်ငွေ / qty မပြ — ဆက်လုပ်နိုင်သည့် action တစ်ခုသာ
+            <button
+              onClick={() =>
+                (window.history.state?.idx ?? 0) > 0 ? navigate(-1) : navigate("/products")
+              }
+              className="w-full py-3 rounded-2xl font-bold text-[15px] border-2 border-primary text-primary bg-white hover:bg-blue-50 active:scale-[0.98] transition-all"
+            >
+              အခြားဆေးများ ကြည့်မယ်
+            </button>
+          ) : (
+          <>
           <div className="flex items-center justify-between px-2">
             <div className="flex flex-col">
               <span className="text-gray-500 text-[11px] font-bold uppercase tracking-widest">
@@ -301,14 +318,9 @@ export default function ProductDetail() {
           </div>
 
           <div className="flex items-center justify-between gap-4">
-            <div
-              className={`flex items-center gap-4 bg-gray-100 p-1.5 rounded-2xl ${
-                isOutOfStock ? "opacity-40 pointer-events-none" : ""
-              }`}
-            >
+            <div className="flex items-center gap-4 bg-gray-100 p-1.5 rounded-2xl">
               <button
                 onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                disabled={isOutOfStock}
                 className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-gray-600 hover:text-primary transition-all active:scale-90 shadow-sm"
               >
                 <Minus className="w-4 h-4 stroke-[3px]" />
@@ -318,7 +330,6 @@ export default function ProductDetail() {
               </span>
               <button
                 onClick={() => setQuantity(quantity + 1)}
-                disabled={isOutOfStock}
                 className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white transition-all active:scale-90 shadow-md shadow-blue-100"
               >
                 <Plus className="w-4 h-4 stroke-[3px]" />
@@ -326,16 +337,18 @@ export default function ProductDetail() {
             </div>
             <button
               onClick={handleAddToCart}
-              disabled={isOutOfStock || quantity === 0}
+              disabled={quantity === 0}
               className={`flex-1 py-3 rounded-2xl font-bold text-[15px] tracking-wide transition-all shadow-lg ${
-                isOutOfStock || quantity === 0
+                quantity === 0
                   ? "bg-gray-300 text-gray-500 cursor-not-allowed border-b-4 border-gray-400"
                   : "bg-primary text-white active:scale-95 shadow-blue-100 border-b-4 border-blue-700"
               }`}
             >
-              {isOutOfStock ? "ပစ္စည်းပြတ်နေပါသည်" : "ဆေးယူမယ်"}
+              ဆေးယူမယ်
             </button>
           </div>
+          </>
+          )}
         </div>
       </div>
     </div>
