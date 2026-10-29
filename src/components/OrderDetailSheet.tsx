@@ -16,6 +16,8 @@ export interface OrderProduct {
   unit: string;
   quantity: number;
   originalQuantity?: number | null;
+  // Fulfillment တွင် unit ပြောင်းသွားလျှင် customer မှာခဲ့သော မူလ unit
+  originalUnit?: string | null;
   unitPrice: number;
   subtotal: number;
 }
@@ -103,8 +105,11 @@ export default function OrderDetailSheet({ order, loading, onClose }: OrderDetai
             <ul className="divide-y divide-gray-100">
               {order.products.map((p) => {
                 const img = getImageUrl(p);
+                const originalUnit = p.originalUnit || p.unit;
+                // quantity သို့မဟုတ် unit တစ်ခုခု ပြောင်းသွားလျှင် မူလ မှာယူမှုကို ပြ
                 const reduced =
-                  p.originalQuantity != null && p.originalQuantity !== p.quantity;
+                  p.originalQuantity != null &&
+                  (p.originalQuantity !== p.quantity || originalUnit !== p.unit);
                 return (
                   <li key={p._id} className="flex items-start gap-3 py-3">
                     <div className="w-11 h-11 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center overflow-hidden shrink-0">
@@ -123,7 +128,7 @@ export default function OrderDetailSheet({ order, loading, onClose }: OrderDetai
                       </p>
                       {reduced && (
                         <p className="text-[12px] text-[#B45309] mt-0.5">
-                          မူလ {p.originalQuantity} {p.unit}
+                          မူလ {p.originalQuantity} {originalUnit}
                         </p>
                       )}
                     </div>
