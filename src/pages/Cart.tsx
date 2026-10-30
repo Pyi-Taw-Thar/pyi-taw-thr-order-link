@@ -1,4 +1,4 @@
-import { ShoppingCart, Trash2, Plus, Minus, CheckCircle, XCircle } from 'lucide-react';
+import { ShoppingCart, Trash2, Plus, Minus, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
@@ -7,6 +7,12 @@ import axios from 'axios';
 import api from '../services/axios';
 import authService from '../services/auth.service';
 
+interface ErrorDetails {
+  code?: 'OUT_OF_STOCK' | 'LIMIT_EXCEEDED' | 'PRODUCT_UNAVAILABLE' | 'INVALID_QUANTITY' | 'STOCK_CHANGED';
+  inventoryId?: string;
+  productName?: string;
+}
+
 export default function Cart() {
   const navigate = useNavigate();
   const { cartItems, updateQuantity, setQuantity, removeFromCart, clearCart, totalPrice } = useCart();
@@ -14,6 +20,34 @@ export default function Cart() {
   const [isSuccess, setIsSuccess] = useState(false);
   const [orderLoading, setOrderLoading] = useState(false);
   const [orderError, setOrderError] = useState('');
+  // Error ဖြစ်ပေါ်သည့် ပစ္စည်းအတွက် highlight နှင့် short warning message ပြရန် state
+  const [highlightedInventoryId, setHighlightedInventoryId] = useState<string | null>(null);
+  const [itemErrorText, setItemErrorText] = useState<string>('');
+
+  // Cart ထဲရှိ ပစ္စည်းအရေအတွက် ပြောင်းလဲခြင်း သို့မဟုတ် ဖယ်ရှားခြင်း ပြုလုပ်ပါက highlight ဖယ်ရှားသည်
+  const handleQuantityChange = (itemId: string, invId: string, newQty: number) => {
+    if (highlightedInventoryId === invId) {
+      setHighlightedInventoryId(null);
+      setItemErrorText('');
+    }
+    setQuantity(itemId, newQty);
+  };
+
+  const handleUpdateQuantity = (itemId: string, invId: string, delta: number) => {
+    if (highlightedInventoryId === invId) {
+      setHighlightedInventoryId(null);
+      setItemErrorText('');
+    }
+    updateQuantity(itemId, delta);
+  };
+
+  const handleRemoveFromCart = (itemId: string, invId: string) => {
+    if (highlightedInventoryId === invId) {
+      setHighlightedInventoryId(null);
+      setItemErrorText('');
+    }
+    removeFromCart(itemId);
+  };
 
   const handleOrder = async () => {
     const token = localStorage.getItem('access_token');
@@ -36,6 +70,9 @@ export default function Cart() {
 
       await api.post('/ecommerce/order', { products });
       setIsSuccess(true);
+      // အော်ဒါအောင်မြင်ပါက highlight ရှင်းလင်းသည်
+      setHighlightedInventoryId(null);
+      setItemErrorText('');
       setTimeout(() => clearCart(), 500);
       // လက်ကျန် ပြောင်းသွား၍ product cache ကို နောက်တစ်ကြိမ်ကြည့်လျှင် အသစ်ယူစေ
       queryClient.invalidateQueries({ queryKey: ['products'] });
@@ -43,6 +80,27 @@ export default function Cart() {
     } catch (err) {
       const msg = (axios.isAxiosError(err) && err.response?.data?.message) || 'အော်ဒါတင်ရာတွင် ပြဿနာရှိနေပါသည်။ နောက်မှ ထပ်ကြိုးစားပါ။';
       setOrderError(msg);
+
+      // Backend မှ ပြန်ပို့သော details ပါရှိပါက သက်ဆိုင်ရာ ပစ္စည်း row ကို အနီရောင် border ဖြင့် highlight ပြသည်
+      if (axios.isAxiosError(err) && err.response?.data?.details) {
+        const details: ErrorDetails = err.response.data.details;
+        if (details.inventoryId) {
+          setHighlightedInventoryId(details.inventoryId);
+          let shortMsg = 'အော်ဒါတွင် ပြဿနာရှိပါသည်';
+          if (details.code === 'OUT_OF_STOCK') {
+            shortMsg = 'လက်ကျန် မလုံလောက်ပါ — အရေအတွက် လျှော့ပါ';
+          } else if (details.code === 'PRODUCT_UNAVAILABLE') {
+            shortMsg = 'ဝယ်၍ မရတော့ပါ — ဖယ်ပါ';
+          } else if (details.code === 'LIMIT_EXCEEDED') {
+            shortMsg = 'ဝယ်ခွင့် ကျော်နေပါသည်';
+          } else if (details.code === 'INVALID_QUANTITY') {
+            shortMsg = 'အရေအတွက် မမှန်ကန်ပါ';
+          } else if (details.code === 'STOCK_CHANGED') {
+            shortMsg = 'လက်ကျန် ပြောင်းသွားပါသည်';
+          }
+          setItemErrorText(shortMsg);
+        }
+      }
     } finally {
       setOrderLoading(false);
     }
@@ -78,62 +136,85 @@ export default function Cart() {
           </div>
         ) : (
           <div className="px-4 space-y-4 pb-20">
-            {cartItems.map((item, index) => (
-              <div key={item.id} className="bg-white rounded-3xl p-5 border border-gray-100 shadow-sm relative overflow-hidden">
-                <div className="flex items-start justify-between">
-                  <div className="flex gap-4">
-                    <div className="w-6 h-6 md:w-8 md:h-8 rounded-full border border-blue-100 flex items-center justify-center text-primary text-[10px] md:text-xs font-bold bg-white mt-1 shrink-0">
-                      {index + 1}
-                    </div>
-                    <div className="space-y-1">
-                      <h3 className="font-bold text-[#1a1a1a] text-[14px] md:text-lg leading-tight">
-                        {item.name}
-                      </h3>
-                      <div className="flex items-baseline gap-1">
-                        <span className="text-primary font-bold text-[16px] md:text-xl font-mono">{item.price.toLocaleString()}</span>
-                        <span className="text-primary text-[10px] font-bold">MMK</span>
-                        <span className="text-gray-400 text-[10px]">/ {item.unit}</span>
+            {cartItems.map((item, index) => {
+              const isHighlighted = highlightedInventoryId === item.inventoryId;
+              return (
+                <div
+                  key={item.id}
+                  className={`bg-white rounded-3xl p-5 border shadow-sm relative overflow-hidden transition-all duration-300 ${
+                    isHighlighted ? 'border-red-500 ring-2 ring-red-200' : 'border-gray-100'
+                  }`}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex gap-4">
+                      <div
+                        className={`w-6 h-6 md:w-8 md:h-8 rounded-full border flex items-center justify-center text-[10px] md:text-xs font-bold mt-1 shrink-0 ${
+                          isHighlighted
+                            ? 'border-red-200 text-red-600 bg-red-50'
+                            : 'border-blue-100 text-primary bg-white'
+                        }`}
+                      >
+                        {index + 1}
                       </div>
-                      {/* Line subtotal */}
-                      <p className="text-[11px] md:text-sm text-gray-500 font-mono">
-                        {item.quantity} × {item.price.toLocaleString()} ={" "}
-                        <span className="font-bold text-gray-800">
-                          {(item.quantity * item.price).toLocaleString()} MMK
-                        </span>
-                      </p>
+                      <div className="space-y-1">
+                        <h3 className="font-bold text-[#1a1a1a] text-[14px] md:text-lg leading-tight">
+                          {item.name}
+                        </h3>
+                        <div className="flex items-baseline gap-1">
+                          <span className="text-primary font-bold text-[16px] md:text-xl font-mono">{item.price.toLocaleString()}</span>
+                          <span className="text-primary text-[10px] font-bold">MMK</span>
+                          <span className="text-gray-400 text-[10px]">/ {item.unit}</span>
+                        </div>
+                        {/* Line subtotal */}
+                        <p className="text-[11px] md:text-sm text-gray-500 font-mono">
+                          {item.quantity} × {item.price.toLocaleString()} ={" "}
+                          <span className="font-bold text-gray-800">
+                            {(item.quantity * item.price).toLocaleString()} MMK
+                          </span>
+                        </p>
+                      </div>
                     </div>
+                    <button
+                      onClick={() => handleRemoveFromCart(item.id, item.inventoryId)}
+                      className="bg-[#fff1f0] p-2.5 rounded-full text-red-500 hover:bg-red-50 transition-colors"
+                      title="ဖယ်ရှားမည်"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </button>
                   </div>
-                  <button
-                    onClick={() => removeFromCart(item.id)}
-                    className="bg-[#fff1f0] p-2.5 rounded-full text-red-500 hover:bg-red-50 transition-colors"
-                  >
-                    <Trash2 className="w-5 h-5" />
-                  </button>
-                </div>
 
-                {/* Quantity Selector */}
-                <div className="mt-4 bg-white border border-gray-100 rounded-2xl flex items-center justify-between p-1.5 px-4 md:px-6 shadow-sm">
-                  <button
-                    onClick={() => updateQuantity(item.id, -1)}
-                    className="w-8 h-8 md:w-12 md:h-12 bg-primary rounded-lg md:rounded-xl flex items-center justify-center text-white"
-                  >
-                    <Minus className="w-4 h-4 md:w-6 md:h-6 stroke-[3px]" />
-                  </button>
-                  <input
-                    type="number"
-                    value={item.quantity}
-                    onChange={(e) => setQuantity(item.id, parseInt(e.target.value) || 1)}
-                    className="text-base md:text-2xl font-bold font-mono w-12 md:w-20 text-center bg-transparent border-none focus:outline-none focus:ring-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                  />
-                  <button
-                    onClick={() => updateQuantity(item.id, 1)}
-                    className="w-8 h-8 md:w-12 md:h-12 bg-primary rounded-lg md:rounded-xl flex items-center justify-center text-white"
-                  >
-                    <Plus className="w-4 h-4 md:w-6 md:h-6 stroke-[3px]" />
-                  </button>
+                  {/* Quantity Selector */}
+                  <div className="mt-4 bg-white border border-gray-100 rounded-2xl flex items-center justify-between p-1.5 px-4 md:px-6 shadow-sm">
+                    <button
+                      onClick={() => handleUpdateQuantity(item.id, item.inventoryId, -1)}
+                      className="w-8 h-8 md:w-12 md:h-12 bg-primary rounded-lg md:rounded-xl flex items-center justify-center text-white"
+                    >
+                      <Minus className="w-4 h-4 md:w-6 md:h-6 stroke-[3px]" />
+                    </button>
+                    <input
+                      type="number"
+                      value={item.quantity}
+                      onChange={(e) => handleQuantityChange(item.id, item.inventoryId, parseInt(e.target.value) || 1)}
+                      className="text-base md:text-2xl font-bold font-mono w-12 md:w-20 text-center bg-transparent border-none focus:outline-none focus:ring-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    />
+                    <button
+                      onClick={() => handleUpdateQuantity(item.id, item.inventoryId, 1)}
+                      className="w-8 h-8 md:w-12 md:h-12 bg-primary rounded-lg md:rounded-xl flex items-center justify-center text-white"
+                    >
+                      <Plus className="w-4 h-4 md:w-6 md:h-6 stroke-[3px]" />
+                    </button>
+                  </div>
+
+                  {/* Highlight warning message */}
+                  {isHighlighted && itemErrorText && (
+                    <div className="mt-3 pt-2.5 border-t border-red-100 flex items-center gap-1.5 text-red-600 text-[11px] md:text-sm font-medium animate-in fade-in duration-200">
+                      <AlertCircle className="w-4 h-4 shrink-0" />
+                      <span>{itemErrorText}</span>
+                    </div>
+                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
 
@@ -144,10 +225,6 @@ export default function Cart() {
               <div className="flex items-end justify-between">
                 <div className="space-y-0.5">
                   <h2 className="text-[14px] md:text-2xl font-bold text-primary-dark">စုစုပေါင်းဈေးနှုန်း</h2>
-                  {/* <p className="text-[8px] md:text-[10px] text-gray-400 leading-tight">
-                    ပို့ဆောင်ခနှင့် အခွန်များကို ငွေချေတဲ့အခါ<br />
-                    ထည့်သွင်း တွက်ချက်ပေးပါမယ်
-                  </p> */}
                 </div>
                 <div className="flex items-baseline gap-2">
                   <div className="flex items-baseline gap-1">
@@ -179,7 +256,11 @@ export default function Cart() {
                   )}
                 </button>
                 <button
-                  onClick={clearCart}
+                  onClick={() => {
+                    setHighlightedInventoryId(null);
+                    setItemErrorText('');
+                    clearCart();
+                  }}
                   disabled={orderLoading}
                   className="w-full bg-white text-gray-400 border border-gray-100 py-3 md:py-4 rounded-2xl font-bold text-[12px] md:text-lg active:scale-[0.98] transition-all disabled:opacity-40"
                 >
@@ -238,7 +319,7 @@ export default function Cart() {
 
             <div className="space-y-2">
               <h2 className="text-xl md:text-3xl font-bold text-[#1a1a1a]">မအောင်မြင်ပါ</h2>
-              <p className="text-[12px] md:text-base text-red-500 font-medium">
+              <p className="text-[12px] md:text-base text-red-500 font-medium whitespace-pre-wrap">
                 {orderError}
               </p>
             </div>

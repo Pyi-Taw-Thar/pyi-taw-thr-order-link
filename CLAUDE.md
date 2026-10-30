@@ -57,6 +57,7 @@ ecommerce/
 │   ├── pages/
 │   │   ├── Home.tsx           # Hero banner + Brands + Limited Sale
 │   │   ├── Products.tsx       # Brand → Category → Product drill-down
+│   │   ├── AllProducts.tsx    # All products infinite scroll virtualized page
 │   │   ├── Cart.tsx           # Cart with order submission
 │   │   ├── ProductDetail.tsx  # Product detail + variant selection
 │   │   ├── Login.tsx          # Phone-based login
@@ -114,6 +115,7 @@ ecommerce/
 | Styling | Tailwind CSS 3.4 |
 | Icons | lucide-react 0.344 |
 | State | React Context (CartContext) |
+| Virtualization | @tanstack/react-virtual 3.14.24 |
 | Fonts | ChivoMono, Tagus (custom .ttf) |
 
 ---
