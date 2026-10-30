@@ -1,4 +1,4 @@
-import { PriceTier, UomConversion } from "../pages/products/types";
+import { PriceTier, UomConversion, WholesaleTier } from "../pages/products/types";
 
 const normalize = (unit?: string | null) => (unit || "").trim().toLowerCase();
 
@@ -23,12 +23,48 @@ export function getEffectiveFactor(
   return conv.factor;
 }
 
+// Unit တစ်ခုနှင့် ကိုက်ညီသော wholesale tier များကို စိစစ်ပြီး minQty အစဉ်လိုက် စီသည်
+function getMatchingTiersForUnit(
+  unit: string,
+  baseUnit: string,
+  wholesalePrices: { unit?: string | null; quantity: number; price: number }[] = [],
+): WholesaleTier[] {
+  const targetNorm = normalize(unit);
+  const baseNorm = normalize(baseUnit);
+
+  const matched = wholesalePrices.filter((wp) => {
+    if (!wp || typeof wp.price !== "number" || wp.price <= 0) return false;
+    const qty = Number(wp.quantity);
+    if (!qty || qty <= 0) return false;
+
+    const wpUnitNorm = normalize(wp.unit);
+    if (wpUnitNorm) {
+      return wpUnitNorm === targetNorm;
+    }
+    // Unit မပါလျှင် base unit နှင့်သာ ကိုက်ညီသည်
+    return targetNorm === baseNorm;
+  });
+
+  // minQty ငယ်ရာမှ ကြီးရာ စီပြီး minQty ထပ်နေလျှင် ဖယ်သည် (နောက်ဆုံးတန်ဖိုးကို ယူသည်)
+  matched.sort((a, b) => Number(a.quantity) - Number(b.quantity));
+  const tierMap = new Map<number, number>();
+  for (const t of matched) {
+    tierMap.set(Number(t.quantity), Number(t.price));
+  }
+
+  return Array.from(tierMap.entries())
+    .map(([minQty, price]) => ({ minQty, price }))
+    .sort((a, b) => a.minQty - b.minQty);
+}
+
 // Unit အလိုက်စျေးစာရင်း — base unit (အငယ်ဆုံး) ကို မပြဘဲ factor ငယ်ရာမှ ကြီးရာ စီသည်
 // Conversion unit မရှိသော product တွင် base unit တစ်ခုတည်းကို fallback အဖြစ် ပြသည်
+// Unit တစ်ခုချင်းစီအတွက် ကိုက်ညီသော wholesale tier များကို တွဲပေးသည်
 export function buildUnitPrices(
   baseUnit: string,
   sellingPrice: number,
   conversions: UomConversion[] = [],
+  wholesalePrices: { unit?: string | null; quantity: number; price: number }[] = [],
 ): PriceTier[] {
   const units = conversions
     .filter((c) => c.unit && normalize(c.unit) !== normalize(baseUnit))
@@ -37,7 +73,24 @@ export function buildUnitPrices(
     .sort((a, b) => a.factor - b.factor);
 
   if (units.length === 0) {
-    return [{ unit: baseUnit, quantity: 1, price: sellingPrice }];
+    const wholesaleTiers = getMatchingTiersForUnit(baseUnit, baseUnit, wholesalePrices);
+    return [
+      {
+        unit: baseUnit,
+        quantity: 1,
+        price: sellingPrice,
+        ...(wholesaleTiers.length > 0 ? { wholesaleTiers } : {}),
+      },
+    ];
   }
-  return units.map((u) => ({ unit: u.unit, quantity: 1, price: sellingPrice * u.factor }));
+
+  return units.map((u) => {
+    const wholesaleTiers = getMatchingTiersForUnit(u.unit, baseUnit, wholesalePrices);
+    return {
+      unit: u.unit,
+      quantity: 1,
+      price: sellingPrice * u.factor,
+      ...(wholesaleTiers.length > 0 ? { wholesaleTiers } : {}),
+    };
+  });
 }

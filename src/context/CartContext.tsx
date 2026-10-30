@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { PriceTier } from '../pages/products/types';
-import { findBestTierIndex } from '../utils/pricing';
+import { getTierState } from '../utils/pricing';
 
 export interface CartItem {
   id: string;
@@ -26,14 +26,14 @@ interface CartContextType {
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
-// Unit အလိုက်စျေးသို့ ပြောင်းသဖြင့် wholesale စျေးဖြင့် သိမ်းထားသော cart ဟောင်းကို မသုံးတော့ပါ
-const CART_STORAGE_KEY = 'cart_items_v2';
-const LEGACY_CART_STORAGE_KEY = 'cart_items';
+// Unit အလိုက် လက်ကားစျေး tier တွက်ချက်မှု အသစ်အတွက် storage key ကို v3 သို့ တိုးမြှင့်သည်
+const CART_STORAGE_KEY = 'cart_items_v3';
+const LEGACY_CART_STORAGE_KEYS = ['cart_items', 'cart_items_v2'];
 
 export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [cartItems, setCartItems] = useState<CartItem[]>(() => {
     try {
-      localStorage.removeItem(LEGACY_CART_STORAGE_KEY);
+      LEGACY_CART_STORAGE_KEYS.forEach((key) => localStorage.removeItem(key));
       const stored = localStorage.getItem(CART_STORAGE_KEY);
       return stored ? JSON.parse(stored) : [];
     } catch {
@@ -45,28 +45,37 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartItems));
   }, [cartItems]);
 
+  // Unit နှင့် quantity အလိုက် သက်ရောက်မည့် ဈေးနှုန်းကို ပြန်လည်တွက်ချက်သည်
+  const recalcPrice = (prices: PriceTier[], unit: string, qty: number, fallbackPrice: number): number => {
+    if (!prices || prices.length === 0) return fallbackPrice;
+    const tier = prices.find((p) => p.unit === unit);
+    if (!tier) return fallbackPrice;
+    return getTierState(tier, qty).price;
+  };
+
+  // Cart ထဲသို့ ပစ္စည်းထည့်သွင်းခြင်း (ရှိပြီးသား item တွင် ပေါင်းထည့်လျှင်လည်း ဈေးနှုန်းပြန်တွက်သည်)
   const addToCart = (product: { id: string; inventoryId: string; name: string; price: number; unit: string; prices: PriceTier[] }, quantity: number) => {
     if (quantity <= 0) return;
     
     setCartItems(prev => {
       const existingItem = prev.find(item => item.id === product.id);
       if (existingItem) {
-        return prev.map(item =>
-          item.id === product.id ? { ...item, quantity: item.quantity + quantity } : item
-        );
+        return prev.map(item => {
+          if (item.id === product.id) {
+            const newQty = item.quantity + quantity;
+            const newPrice = recalcPrice(item.prices, item.unit, newQty, item.price);
+            return { ...item, quantity: newQty, price: newPrice };
+          }
+          return item;
+        });
       }
-      return [...prev, { ...product, quantity, unit: product.unit, prices: product.prices }];
+      const initialPrice = recalcPrice(product.prices, product.unit, quantity, product.price);
+      return [...prev, { ...product, price: initialPrice, quantity, unit: product.unit, prices: product.prices }];
     });
   };
 
   const removeFromCart = (id: string) => {
     setCartItems(prev => prev.filter(item => item.id !== id));
-  };
-
-  const recalcPrice = (prices: PriceTier[], unit: string, qty: number, fallbackPrice: number): number => {
-    if (!prices || prices.length === 0) return fallbackPrice;
-    const bestIndex = findBestTierIndex(prices, unit, qty);
-    return prices[bestIndex]?.price ?? prices[0].price;
   };
 
   const updateQuantity = (id: string, delta: number) => {

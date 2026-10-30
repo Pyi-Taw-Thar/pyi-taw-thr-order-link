@@ -1,11 +1,11 @@
 import { ArrowLeft, ArrowUpDown } from "lucide-react";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
 import { Product } from "./types";
 import ProductRow from "./ProductRow";
 import SearchHeader from "../../components/SearchHeader";
-import { findBestTierIndex } from "../../utils/pricing";
+import { getTierState } from "../../utils/pricing";
 
 interface ProductListProps {
   brand: string;
@@ -35,19 +35,6 @@ export default function ProductList({
     return sortDir === "asc" ? sorted : sorted.reverse();
   }, [products, sortDir]);
 
-  useEffect(() => {
-    if (!expandedProductId) return;
-    const product = products.find((p) => p.id === expandedProductId);
-    if (!product) return;
-    const qty = quantities[expandedProductId] ?? 1;
-    const currentUnit = product.prices[selectedVariantIndex]?.unit;
-    if (!currentUnit || qty <= 0) return;
-    const bestIndex = findBestTierIndex(product.prices, currentUnit, qty);
-    if (bestIndex !== selectedVariantIndex) {
-      setSelectedVariantIndex(bestIndex);
-    }
-  }, [expandedProductId, quantities, selectedVariantIndex, products]);
-
   const toggleProduct = (id: string) => {
     if (expandedProductId === id) {
       setExpandedProductId(null);
@@ -72,23 +59,40 @@ export default function ProductList({
     }));
   };
 
+  // Product ID အလိုက် cart ထဲရှိ စုစုပေါင်း အရေအတွက်
   const getProductCartQty = (productId: string) => {
     return cartItems
-      .filter((item) => item.id.startsWith(productId))
+      .filter((item) => item.inventoryId === productId || item.id.startsWith(productId))
       .reduce((sum, item) => sum + item.quantity, 0);
   };
+
+  // Product ID အလိုက် unit အလိုက် cart ထဲရှိ အရေအတွက်
+  const cartQtyByUnitMap = useMemo(() => {
+    const map: Record<string, Record<string, number>> = {};
+    for (const item of cartItems) {
+      const pId = item.inventoryId;
+      if (!map[pId]) map[pId] = {};
+      map[pId][item.unit] = (map[pId][item.unit] || 0) + item.quantity;
+    }
+    return map;
+  }, [cartItems]);
 
   const handleAddToCart = (product: Product) => {
     const qty = quantities[product.id] ?? 1;
     if (qty > 0) {
       const selectedVariant =
         product.prices[selectedVariantIndex] || product.prices[0];
+      const currentUnitCartQty =
+        cartQtyByUnitMap[product.id]?.[selectedVariant.unit] || 0;
+      const totalQty = currentUnitCartQty + qty;
+      const tierState = getTierState(selectedVariant, totalQty);
+
       addToCart(
         {
           id: `${product.id}-${selectedVariant.unit}`,
           inventoryId: product.id,
           name: `${product.name} (${selectedVariant.unit})`,
-          price: selectedVariant.price,
+          price: tierState.price,
           unit: selectedVariant.unit,
           prices: product.prices,
         },
@@ -156,9 +160,12 @@ export default function ProductList({
               key={product.id}
               product={product}
               expanded={expandedProductId === product.id}
-              selectedVariantIndex={selectedVariantIndex}
+              selectedVariantIndex={
+                expandedProductId === product.id ? selectedVariantIndex : 0
+              }
               quantity={quantities[product.id] ?? 1}
               cartQty={getProductCartQty(product.id)}
+              cartQtyByUnit={cartQtyByUnitMap[product.id] || {}}
               onToggle={() => toggleProduct(product.id)}
               onVariantSelect={setSelectedVariantIndex}
               onQuantityDelta={(delta) => updateQuantity(product.id, delta)}

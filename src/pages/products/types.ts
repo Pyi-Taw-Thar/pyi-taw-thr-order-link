@@ -1,7 +1,13 @@
+export interface WholesaleTier {
+  minQty: number;
+  price: number;
+}
+
 export interface PriceTier {
   unit: string;
   quantity: number;
   price: number;
+  wholesaleTiers?: WholesaleTier[];
 }
 
 export interface ProductImage {
@@ -45,7 +51,7 @@ export interface ApiProductItem {
     unitOfMeasure: string;
     sellingPrice: number;
     uomConversions?: UomConversion[];
-    wholesalePrices: { unit: string; quantity: number; price: number }[];
+    wholesalePrices: { unit: string | null; quantity: number; price: number }[];
     images: ProductImage[];
     ecommerceMaxPerUser?: number | null;
   };
