@@ -20,6 +20,9 @@ export interface OrderProduct {
   originalUnit?: string | null;
   unitPrice: number;
   subtotal: number;
+  // ဆိုင်က ဈေးပြင်ထားသော line ဖြစ်ကြောင်းနှင့် မူလဈေးနှုန်း
+  priceOverridden?: boolean;
+  originalUnitPrice?: number | null;
 }
 
 export interface OrderData {
@@ -126,6 +129,14 @@ export default function OrderDetailSheet({ order, loading, onClose }: OrderDetai
                       <p className="text-[12px] text-gray-500 mt-0.5">
                         {p.quantity} {p.unit} × {p.unitPrice.toLocaleString()}
                       </p>
+                      {/* ဆိုင်က ဈေးနှုန်းပြင်ဆင်ထားပါက မူလဈေးနှုန်းကို မျဉ်းဖြတ်၍ ပြသခြင်း */}
+                      {p.priceOverridden &&
+                        p.originalUnitPrice != null &&
+                        p.originalUnitPrice !== p.unitPrice && (
+                          <p className="text-[12px] text-gray-400 line-through mt-0.5">
+                            မူလဈေး {p.originalUnitPrice.toLocaleString()}
+                          </p>
+                        )}
                       {reduced && (
                         <p className="text-[12px] text-[#B45309] mt-0.5">
                           မူလ {p.originalQuantity} {originalUnit}

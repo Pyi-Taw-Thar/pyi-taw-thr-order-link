@@ -80,6 +80,7 @@ ecommerce/
 │   │   ├── Skeleton.tsx        # Loading skeleton
 │   │   ├── GridButton.tsx      # Navigation button
 │   │   ├── GridPage.tsx        # Generic grid page layout
+│   │   ├── OrderDetailSheet.tsx # Order detail sheet (with originalUnitPrice strikethrough on admin price edit)
 │   │   ├── LogoutModal.tsx     # Logout confirmation
 │   │   └── ScrollToTop.tsx     # Scroll-to-top on route change
 │   ├── context/
