@@ -1,9 +1,10 @@
-import { ArrowLeft, MapPin, Package, ChevronRight, AlertTriangle, LogOut } from "lucide-react";
+import { ArrowLeft, MapPin, Package, ChevronRight, AlertTriangle, LogOut, Wallet } from "lucide-react";
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import axios from "axios";
 import api from "../services/axios";
 import authService from "../services/auth.service";
+import { useMyCredit } from "../services/customerQueries";
 import LogoutModal from "../components/LogoutModal";
 import OrderDetailSheet, { OrderData } from "../components/OrderDetailSheet";
 import {
@@ -111,6 +112,7 @@ export default function Profile() {
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [fetchedOrder, setFetchedOrder] = useState<OrderData | null>(null);
   const [orderLoading, setOrderLoading] = useState(false);
+  const { data: creditInfo, isLoading: creditLoading } = useMyCredit();
 
   const selectedOrderId = searchParams.get("order");
 
@@ -256,6 +258,40 @@ export default function Profile() {
                 <span className="min-w-0">{addressText}</span>
               </p>
             )}
+          </div>
+        </section>
+
+        {/* ပေးရန်ကျန်ငွေ Card */}
+        <section
+          className={`rounded-2xl border p-4 flex items-center justify-between gap-3 ${
+            (creditInfo?.creditRemaining ?? 0) > 0
+              ? "bg-amber-50/80 border-amber-200"
+              : "bg-emerald-50/70 border-emerald-200"
+          }`}
+        >
+          <div className="flex items-center gap-3 min-w-0">
+            <div
+              className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+                (creditInfo?.creditRemaining ?? 0) > 0
+                  ? "bg-amber-100 text-amber-700"
+                  : "bg-emerald-100 text-emerald-700"
+              }`}
+            >
+              <Wallet className="w-5 h-5" />
+            </div>
+            <div className="min-w-0">
+              {creditLoading ? (
+                <p className="text-[13px] font-bold text-gray-500">စစ်ဆေးနေပါသည်...</p>
+              ) : (creditInfo?.creditRemaining ?? 0) > 0 ? (
+                <p className="text-[15px] font-bold text-[#B45309] break-words">
+                  ပေးရန်ကျန်ငွေ {(creditInfo?.creditRemaining ?? 0).toLocaleString()} MMK
+                </p>
+              ) : (
+                <p className="text-[14px] font-bold text-[#15803D]">
+                  ပေးရန် ကျန်ငွေ မရှိပါ
+                </p>
+              )}
+            </div>
           </div>
         </section>
 

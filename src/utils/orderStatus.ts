@@ -33,6 +33,7 @@ export const ACTIVE_STATUSES = ["pending", "confirmed", "shipped"];
 
 export const PAYMENT_STATUS_LABELS: Record<string, string> = {
   unpaid: "ငွေမချေရသေး",
+  partial: "တစ်စိတ်တစ်ပိုင်း ပေးပြီး",
   paid: "ငွေချေပြီး",
 };
 

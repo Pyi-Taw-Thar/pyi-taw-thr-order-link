@@ -6,9 +6,17 @@ import { useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import api from '../services/axios';
 import authService from '../services/auth.service';
+import { useMyCredit, customerCreditKeys } from '../services/customerQueries';
 
 interface ErrorDetails {
-  code?: 'OUT_OF_STOCK' | 'LIMIT_EXCEEDED' | 'PRODUCT_UNAVAILABLE' | 'INVALID_QUANTITY' | 'STOCK_CHANGED';
+  code?:
+    | 'OUT_OF_STOCK'
+    | 'LIMIT_EXCEEDED'
+    | 'PRODUCT_UNAVAILABLE'
+    | 'INVALID_QUANTITY'
+    | 'STOCK_CHANGED'
+    | 'ORDER_BLOCKED'
+    | 'CREDIT_DISABLED';
   inventoryId?: string;
   productName?: string;
 }
@@ -23,6 +31,13 @@ export default function Cart() {
   // Error ဖြစ်ပေါ်သည့် ပစ္စည်းအတွက် highlight နှင့် short warning message ပြရန် state
   const [highlightedInventoryId, setHighlightedInventoryId] = useState<string | null>(null);
   const [itemErrorText, setItemErrorText] = useState<string>('');
+  // Backend 403 ORDER_BLOCKED / CREDIT_DISABLED ပြန်လာပါက ချက်ချင်း banner ပြ၍ ခလုတ်ပိတ်ရန် state
+  const [serverOrderBlocked, setServerOrderBlocked] = useState<boolean>(false);
+  const { data: creditInfo } = useMyCredit();
+  const isOrderBlocked =
+    serverOrderBlocked ||
+    creditInfo?.blacklist === true ||
+    creditInfo?.isCreditPerson === false;
 
   // Cart ထဲရှိ ပစ္စည်းအရေအတွက် ပြောင်းလဲခြင်း သို့မဟုတ် ဖယ်ရှားခြင်း ပြုလုပ်ပါက highlight ဖယ်ရှားသည်
   const handleQuantityChange = (itemId: string, invId: string, newQty: number) => {
@@ -77,13 +92,28 @@ export default function Cart() {
       // လက်ကျန် ပြောင်းသွား၍ product cache ကို နောက်တစ်ကြိမ်ကြည့်လျှင် အသစ်ယူစေ
       queryClient.invalidateQueries({ queryKey: ['products'] });
       queryClient.invalidateQueries({ queryKey: ['product'] });
+      queryClient.invalidateQueries({ queryKey: customerCreditKeys.me });
     } catch (err) {
+      const details: ErrorDetails | undefined = axios.isAxiosError(err)
+        ? err.response?.data?.details
+        : undefined;
+
+      // 403 ORDER_BLOCKED သို့မဟုတ် CREDIT_DISABLED ဖြစ်ပါက ခလုတ်အပေါ်တွင် အနီရောင် banner ပြ၍ ခလုတ်ပိတ်မည်
+      if (
+        axios.isAxiosError(err) &&
+        err.response?.status === 403 &&
+        (details?.code === 'ORDER_BLOCKED' || details?.code === 'CREDIT_DISABLED')
+      ) {
+        setServerOrderBlocked(true);
+        queryClient.invalidateQueries({ queryKey: customerCreditKeys.me });
+        return;
+      }
+
       const msg = (axios.isAxiosError(err) && err.response?.data?.message) || 'အော်ဒါတင်ရာတွင် ပြဿနာရှိနေပါသည်။ နောက်မှ ထပ်ကြိုးစားပါ။';
       setOrderError(msg);
 
       // Backend မှ ပြန်ပို့သော details ပါရှိပါက သက်ဆိုင်ရာ ပစ္စည်း row ကို အနီရောင် border ဖြင့် highlight ပြသည်
-      if (axios.isAxiosError(err) && err.response?.data?.details) {
-        const details: ErrorDetails = err.response.data.details;
+      if (details) {
         if (details.inventoryId) {
           setHighlightedInventoryId(details.inventoryId);
           let shortMsg = 'အော်ဒါတွင် ပြဿနာရှိပါသည်';
@@ -235,10 +265,19 @@ export default function Cart() {
               </div>
 
               <div className="space-y-3 pt-2">
+                {isOrderBlocked && (
+                  <div
+                    role="alert"
+                    className="w-full rounded-2xl bg-red-50 border border-red-200 px-4 py-3 flex items-center gap-2.5 text-red-700 text-[13px] md:text-sm font-bold"
+                  >
+                    <AlertCircle className="w-5 h-5 shrink-0 text-red-600" />
+                    <span>အော်ဒါတင်ခွင့် ပိတ်ထားပါသည်။ ဆိုင်ကို ဆက်သွယ်ပါ။</span>
+                  </div>
+                )}
                 <button
                   onClick={handleOrder}
-                  disabled={orderLoading}
-                  className="w-full bg-primary text-white py-3 md:py-4 rounded-2xl font-bold text-[14px] md:text-xl flex items-center justify-center gap-3 shadow-lg active:scale-[0.98] transition-all disabled:opacity-60"
+                  disabled={orderLoading || isOrderBlocked}
+                  className="w-full bg-primary text-white py-3 md:py-4 rounded-2xl font-bold text-[14px] md:text-xl flex items-center justify-center gap-3 shadow-lg active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {orderLoading ? (
                     <>
