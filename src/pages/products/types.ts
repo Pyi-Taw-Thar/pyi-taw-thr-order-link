@@ -6,6 +6,7 @@ export interface WholesaleTier {
 export interface PriceTier {
   unit: string;
   quantity: number;
+  visibleUnits?: string[];
   price: number;
   wholesaleTiers?: WholesaleTier[];
 }
@@ -53,6 +54,7 @@ export interface ApiProductItem {
     uomConversions?: UomConversion[];
     wholesalePrices: { unit: string | null; quantity: number; price: number }[];
     images: ProductImage[];
+    ecommerceUnits?: string[];
     ecommerceMaxPerUser?: number | null;
   };
 }

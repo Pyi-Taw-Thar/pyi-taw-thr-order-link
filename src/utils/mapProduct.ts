@@ -16,7 +16,13 @@ export function mapApiProduct(item: ApiProductItem): Product {
     isOutOfStock: (item.quantity ?? 0) <= 0,
     baseUnit: p.unitOfMeasure,
     maxPerUser: p.ecommerceMaxPerUser ?? null,
-    // Unit အလိုက် လက်လီစျေးနှင့် wholesale tier များကို တွက်ချက်သည်
-    prices: buildUnitPrices(p.unitOfMeasure, p.sellingPrice, p.uomConversions, p.wholesalePrices),
+    // Unit အလိုက် လက်လီစျေးနှင့် wholesale tier များကို တွက်ချက်သည် (visibleUnits ပါဝင်ပါက ထိုအတိုင်း ဖော်ပြသည်)
+    prices: buildUnitPrices(
+      p.unitOfMeasure,
+      p.sellingPrice,
+      p.uomConversions,
+      p.wholesalePrices,
+      item.visibleUnits || p.ecommerceUnits
+    ),
   };
 }
