@@ -40,10 +40,11 @@ export default {
         'sheet-pop': 'sheet-pop 180ms ease-out',
         'fade-in': 'fade-in 200ms ease-out',
       },
+      // မြန်မာစာ ယူနီကုဒ် ဖောင့် မှန်ကန်စွာ ပေါ်စေရန် Noto Sans Myanmar ထည့်သွင်းထားသည်
       fontFamily: {
-        sans: ['ChivoMono', 'monospace'],
-        mono: ['ChivoMono', 'monospace'],
-        ChivoMono: ['ChivoMono', 'monospace'],
+        sans: ['ChivoMono', 'Noto Sans Myanmar', 'monospace'],
+        mono: ['ChivoMono', 'Noto Sans Myanmar', 'monospace'],
+        ChivoMono: ['ChivoMono', 'Noto Sans Myanmar', 'monospace'],
       },
     },
   },

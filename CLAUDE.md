@@ -141,7 +141,7 @@ ecommerce/
 
 ### Styling
 - **Tailwind CSS 3.4** via PostCSS (installed via npm, unlike dashboard which uses CDN)
-- **Custom fonts**: ChivoMono (monospace for prices) + Tagus (headings)
+- **Custom fonts**: ChivoMono (monospace for prices) + Tagus (headings) + Noto Sans Myanmar (Google Fonts CDN - မြန်မာစာ ယူနီကုဒ် ဖောင့် မှန်ကန်စွာ ပေါ်စေရန်)
 - **Primary color**: Blue (`#3B82F6`) — defined in `constants/colors.ts`
 - **Consumer-friendly UI**: Rounded corners, shadows, Myanmar text throughout
 - **Mobile-first responsive design** with md: breakpoints
